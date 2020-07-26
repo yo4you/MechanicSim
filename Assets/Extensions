@@ -1,0 +1,10 @@
+namespace Extensions
+{
+	public static class Vector2Extension
+	{
+		public static void Project(this Vector2 v0, Vector2 v1, Vector2 v2)
+		{
+			v0 = new Vector2();
+		}
+	}
+}
