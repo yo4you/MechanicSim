@@ -9,31 +9,40 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 {
 	[SerializeField]
 	private SVGImage _addSeperator;
+
 	[SerializeField]
 	private GameObject _prefabTimeEntry;
+
 	[SerializeField]
 	private GameObject _prefabRandomEntry;
+
 	[SerializeField]
 	private GameObject _prefabIfElseEntry;
+
 	[SerializeField]
 	private GameObject _prefabDistributeEntry;
+
 	private RectTransform _contentTransform;
+
 	[SerializeField]
 	private GameObject _overLayTransform;
+
 	private ScrollRect _scrollRect;
 	private GameObject[] _entryPrefabs;
 	private int _cursorIndex = 0;
+
 	[SerializeField]
 	private float _entryMargin = 5f;
+
 	private List<TimeLineEntry> _entries = new List<TimeLineEntry>();
 	private List<GameObject> _entryGameObjects = new List<GameObject>();
+
 	private float _entryHeight;
 	private float _heightScale;
 	private Dropdown _dropdown;
 	private bool _cursorLocked = false;
-	private Dropdown _dropDownIntance;
 
-	void Start()
+	private void Start()
 	{
 		_scrollRect = GetComponent<ScrollRect>();
 		_addSeperator.enabled = false;
@@ -44,10 +53,9 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		_dropdown = GetComponentInChildren<Dropdown>();
 		_dropdown.AddOptions(Enum.GetNames(typeof(TimeLineEntryType)).ToList());
 		_dropdown.gameObject.SetActive(false);
-
 	}
 
-	void Update()
+	private void Update()
 	{
 		if (!_cursorLocked)
 		{
@@ -64,31 +72,47 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		Redraw();
 	}
 
+	internal void RemoveEntry(TimeLineEntry entry)
+	{
+		_entries.Remove(entry);
+		_cursorIndex = 0;
+		Redraw();
+	}
+
 	public void AddNewEntryAtCursor(int entryType)
 	{
 		AddNewEntryAtCursor((TimeLineEntryType)entryType);
 	}
+
 	public void AddNewEntryAtCursor(TimeLineEntryType entryType)
 	{
+		var time = 0f;
+		if (_entries.Count != 0 && _cursorIndex - 1 >= 0)
+		{
+			time = _entries[_cursorIndex - 1].Time + 1;
+		}
 		_entries.Insert(Mathf.Clamp(_cursorIndex, 0, _entries.Count), new TimeLineEntry()
 		{
 			Mechanic = null,
 			Parameters = null,
-			Time = 0,
+			Time = time,
 			Type = entryType
 		});
 		_cursorIndex++;
 		Redraw();
 	}
 
-	private void Redraw()
+	public void Redraw()
 	{
 		_entryGameObjects.ForEach(Destroy);
+		_entries.Sort((entry0, entry1) => entry0.Time.CompareTo(entry1.Time));
 		for (int i = 0; i < _entries.Count; i++)
 		{
 			var entry = _entries[i];
 			var go = Instantiate(_entryPrefabs[(int)entry.Type], _contentTransform.transform);
 			_entryGameObjects.Add(go);
+			var hudentry = go.AddComponent<TimeLineEntryHud>();
+			hudentry.SetEntryData(entry, this);
 			go.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, (_entryHeight + _entryMargin) * i);
 		}
 		var reguiredContentHeight = (1 + _entries.Count) * (_entryHeight + _entryMargin);
@@ -96,17 +120,18 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		{
 			_scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, reguiredContentHeight);
 		}
-
 	}
 
 	public void UnlockCursorLine()
 	{
 		_cursorLocked = false;
 	}
+
 	public void LockCursorLine()
 	{
 		_cursorLocked = true;
 	}
+
 	public void SpawnDropDown()
 	{
 		LockCursorLine();
@@ -116,7 +141,6 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		{
 			UnlockCursorLine();
 			AddNewEntryAtCursor(_dropdown.value);
-
 		}, false);
 	}
 

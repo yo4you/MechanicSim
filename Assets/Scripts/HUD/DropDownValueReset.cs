@@ -11,7 +11,4 @@ public class DropDownValueReset : MonoBehaviour
 	{
 		_dropDown = GetComponent<Dropdown>();
 	}
-	
-	
-
 }

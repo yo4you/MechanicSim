@@ -8,10 +8,11 @@ public enum TimeLineEntryType
 	IfElse,
 	Distribute,
 }
+
 public class TimeLineEntry
 {
-	public float Time;
+	public float Time = 0f;
 	public TimeLineEntryType Type;
-	public Mechanic Mechanic;
-	public List<object> Parameters; 
+	public string Mechanic;
+	public List<object> Parameters;
 }
