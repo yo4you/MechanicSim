@@ -1,5 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +16,7 @@ public class MainTimeLineBehaviour : MonoBehaviour
 	private FightData _fightData;
 	private Dictionary<string, Mechanic> _mechanics = new Dictionary<string, Mechanic>();
 	private TimeLineBehaviour _hudTimeLine;
+	public Dictionary<string, Mechanic> Mechanics { get => _mechanics; }
 
 	private void Start()
 	{
@@ -28,14 +33,10 @@ public class MainTimeLineBehaviour : MonoBehaviour
 		// TODO read json file based on name
 		_fightData = new FightData();
 		//
-		void addmech(Mechanic mech) => _mechanics.Add(mech.Name, mech);
+		void addmech(Mechanic mech) => Mechanics.Add(mech.Name, mech);
 		_fightData.Mechanics.ForEach(addmech);
 		BaseMechanics.Mechanics.Value.ForEach(addmech);
 
 		_hudTimeLine.SetEntries(_fightData.MechanicTimeLine.TimeLineEntries);
-	}
-
-	private void Update()
-	{
 	}
 }

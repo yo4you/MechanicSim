@@ -5,6 +5,8 @@ using UnityEngine.Events;
 
 public class EntryPrefabs : MonoBehaviour
 {
+	public EntryHudScriptableObject _entryHudScriptableObject;
+
 	[SerializeField]
 	private GameObject _timeLabel;
 
