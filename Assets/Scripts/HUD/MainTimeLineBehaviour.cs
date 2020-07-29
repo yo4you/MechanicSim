@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 public class MainTimeLineBehaviour : MonoBehaviour
@@ -21,7 +22,6 @@ public class MainTimeLineBehaviour : MonoBehaviour
 	private void Start()
 	{
 		_titlePrefix = _title.text;
-
 		_hudTimeLine = GetComponentInChildren<TimeLineBehaviour>();
 		// just for debug
 		LoadMechanic("Test0");

@@ -15,5 +15,5 @@ public class TimeLineEntry
 	public float Time = 0f;
 	public TimeLineEntryType Type;
 	public string Mechanic;
-	public List<object> Parameters;
+	public Dictionary<string, object> Parameters = new Dictionary<string, object>();
 }

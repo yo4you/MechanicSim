@@ -27,13 +27,15 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	[SerializeField]
 	private GameObject _overLayTransform;
 
-	private ScrollRect _scrollRect;
-	private GameObject[] _entryPrefabs;
-	private int _cursorIndex = 0;
-
 	[SerializeField]
 	private float _entryMargin = 5f;
 
+	[SerializeField]
+	private EntryHudScriptableObject _entryHudScriptableObject;
+
+	private ScrollRect _scrollRect;
+	private GameObject[] _entryPrefabs;
+	private int _cursorIndex = 0;
 	private List<TimeLineEntry> _entries = new List<TimeLineEntry>();
 	private List<GameObject> _entryGameObjects = new List<GameObject>();
 
@@ -41,6 +43,8 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	private float _heightScale;
 	private Dropdown _dropdown;
 	private bool _cursorLocked = false;
+
+	public EntryHudScriptableObject EntryHudScriptableObject { get => _entryHudScriptableObject; }
 
 	private void Start()
 	{
@@ -94,7 +98,6 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		_entries.Insert(Mathf.Clamp(_cursorIndex, 0, _entries.Count), new TimeLineEntry()
 		{
 			Mechanic = null,
-			Parameters = null,
 			Time = time,
 			Type = entryType
 		});

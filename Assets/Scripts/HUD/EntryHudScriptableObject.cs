@@ -5,4 +5,7 @@ public class EntryHudScriptableObject : ScriptableObject
 {
 	public GameObject TimeLabel;
 	public GameObject CastLabel;
+	public GameObject Vec2Field;
+	public GameObject NumField;
+	public GameObject StringField;
 }

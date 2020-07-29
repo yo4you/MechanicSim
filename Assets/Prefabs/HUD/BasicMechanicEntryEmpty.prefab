@@ -199,7 +199,6 @@ GameObject:
   - component: {fileID: 6504161523466102011}
   - component: {fileID: 6504161523466102010}
   - component: {fileID: 6504161523466102009}
-  - component: {fileID: 6153554074928646822}
   m_Layer: 5
   m_Name: BasicMechanicEntryEmpty
   m_TagString: Untagged
@@ -280,18 +279,3 @@ MonoBehaviour:
   m_EffectColor: {r: 0.8207547, g: 0.8207547, b: 0.8207547, a: 1}
   m_EffectDistance: {x: 1, y: 1}
   m_UseGraphicAlpha: 0
---- !u!114 &6153554074928646822
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6504161523466102015}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 61aa63fd8afea8842bd84a69e1cb8066, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _entryHudScriptableObject: {fileID: 11400000, guid: 06a51bc9485122540a807fcefc15a68a, type: 2}
-  _timeLabel: {fileID: 5200634059074826001, guid: d3cc39e28a4517d4ea833c7731c8b0b2, type: 3}
-  _castLabel: {fileID: 4700547924299645700, guid: e4dab2ec75ba5024ea6614ac8895b3cf, type: 3}
