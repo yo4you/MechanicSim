@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EntryWindowPrefabs
   m_EditorClassIdentifier: 
   TimeLabel: {fileID: 5200634059074826001, guid: d3cc39e28a4517d4ea833c7731c8b0b2, type: 3}
-  CastLabel: {fileID: 4700547924299645700, guid: e4dab2ec75ba5024ea6614ac8895b3cf, type: 3}
+  CastLabel: {fileID: 5872056927021604921, guid: e4dab2ec75ba5024ea6614ac8895b3cf, type: 3}
   Vec2Field: {fileID: 8501436416858665696, guid: 9127f2c147b990b4d8ee85fb54877c06, type: 3}
   NumField: {fileID: 5657202803026543527, guid: 24a40e65e8de26541ba75250d8c07924, type: 3}
   StringField: {fileID: 4731904965347522395, guid: 4e0d229237b9f3b45ac0b53c707f98dc, type: 3}

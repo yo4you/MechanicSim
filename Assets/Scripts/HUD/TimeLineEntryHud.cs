@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR.WSA.Input;
 
 public class TimeLineEntryHud : MonoBehaviour
 {
@@ -24,24 +21,25 @@ public class TimeLineEntryHud : MonoBehaviour
 	public event ChangeHandler OnChange;
 
 	private Dictionary<Type, EntryWindowInOut> _entryWindowDefinitions = default;
+	private List<GameObject> _parameterWindowsToAllign = new List<GameObject>();
 
-	public void Start()
-	{
-	}
+	private Vector2 _margin = new Vector2(0.15f, 0.04f);
+	private Vector2 _marginWithIcon = new Vector2(0.20f, 0.04f);
 
 	internal void SetEntryData(TimeLineEntry entry, TimeLineBehaviour timeLineBehaviour)
 	{
 		_entry = entry;
 		_timeLine = timeLineBehaviour;
 		GetComponentInChildren<Button>().onClick.AddListener(() => timeLineBehaviour.RemoveEntry(entry));
-
+		if (entry.Type != TimeLineEntryType.Time)
+		{
+			_margin = _marginWithIcon;
+		}
 		switch (entry.Type)
 		{
+			case TimeLineEntryType.Random:
 			case TimeLineEntryType.Time:
 				ConstructEmptyEntry(entry);
-				break;
-
-			case TimeLineEntryType.Random:
 				break;
 
 			case TimeLineEntryType.IfElse:
@@ -64,12 +62,19 @@ public class TimeLineEntryHud : MonoBehaviour
 			{ typeof(float), EntryWindowNum },
 			{ typeof(string), EntryWindowString },
 		};
-
-		_timeLabel = Instantiate(_timeLine.EntryHudScriptableObject.TimeLabel, transform);
-		var inputField = _timeLabel.GetComponent<InputField>();
-		inputField.SetTextWithoutNotify(ToTimeStamp(entry.Time));
-		inputField.onEndEdit.AddListener((inputString) => SubmitTime(inputString));
+		if (entry.ParentEntry != null)
+		{
+			_timeLabel = Instantiate(_timeLine.EntryHudScriptableObject.TimeLabel, transform);
+			var inputField = _timeLabel.GetComponent<InputField>();
+			inputField.SetTextWithoutNotify(ToTimeStamp(entry.Time));
+			inputField.onEndEdit.AddListener((inputString) => SubmitTime(inputString));
+		}
 		_castMenu = Instantiate(_timeLine.EntryHudScriptableObject.CastLabel, transform);
+
+		var castRect = _castMenu.GetComponent<RectTransform>();
+		castRect.anchorMin = new Vector2(_margin.x, castRect.anchorMin.y);
+		castRect.anchorMax = new Vector2(1f - _margin.y, castRect.anchorMax.y);
+
 		var dropdown = _castMenu.GetComponent<Dropdown>();
 		var options = _mainTimeLine.Mechanics.Keys.ToList();
 		var defaultOption = options.IndexOf(entry.Mechanic);
@@ -82,6 +87,7 @@ public class TimeLineEntryHud : MonoBehaviour
 		}
 		dropdown.onValueChanged.AddListener((optionIndex) =>
 		{
+			_entry.Parameters = new Dictionary<string, object>();
 			if (optionIndex == 0)
 			{
 				NewMechanic();
@@ -89,6 +95,7 @@ public class TimeLineEntryHud : MonoBehaviour
 			else
 			{
 				SetMechanic(options[optionIndex - 1]);
+				_timeLine.Redraw();
 			}
 		});
 	}
@@ -113,7 +120,26 @@ public class TimeLineEntryHud : MonoBehaviour
 			OnChange += () => _entry.Parameters[parameter.Key] = func.Invoke();
 		}
 
-		//_timeLine.Redraw();
+		AlignParameterWidnows();
+	}
+
+	private void AlignParameterWidnows()
+	{
+		if (_parameterWindowsToAllign.Count == 0)
+		{
+			return;
+		}
+		_parameterWindowsToAllign.Insert(0, _castMenu);
+		int count = _parameterWindowsToAllign.Count;
+
+		float inverseCount = (1f / count) * (1f - _margin.x - _margin.y);
+		for (int i = 0; i < count; i++)
+		{
+			var rect = _parameterWindowsToAllign[i].GetComponent<RectTransform>();
+			//print(_parameterWindowsToAllign[i].name + rect.anchorMin.ToString() + rect.anchorMax.ToString());
+			rect.anchorMin = new Vector2(_margin.x + i * inverseCount, 0f);
+			rect.anchorMax = new Vector2(_margin.x + (i + 1) * inverseCount, 1f);
+		}
 	}
 
 	private void SubmitTime(string inputString)
@@ -194,14 +220,7 @@ public class TimeLineEntryHud : MonoBehaviour
 
 		return () =>
 		{
-			if (float.TryParse(input.text, out float result))
-			{
-				return result;
-			}
-			else
-			{
-				return 0;
-			}
+			return input.text;
 		};
 	}
 
@@ -214,10 +233,16 @@ public class TimeLineEntryHud : MonoBehaviour
 		var input = window.GetComponentInChildren<InputField>();
 		input.SetTextWithoutNotify(readval.ToString());
 		input.onEndEdit.AddListener((_) => ValueChanged());
-
 		return () =>
 		{
-			return input.text;
+			if (float.TryParse(input.text, out float result))
+			{
+				return result;
+			}
+			else
+			{
+				return 0;
+			}
 		};
 	}
 
@@ -229,6 +254,6 @@ public class TimeLineEntryHud : MonoBehaviour
 	private void FitParamaters(GameObject window, string name)
 	{
 		window.GetComponentInChildren<Text>().text = name;
-		_parametereWidnows.Add(window);
+		_parameterWindowsToAllign.Add(window);
 	}
 }
