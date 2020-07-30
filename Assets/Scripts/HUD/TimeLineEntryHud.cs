@@ -62,7 +62,7 @@ public class TimeLineEntryHud : MonoBehaviour
 			{ typeof(float), EntryWindowNum },
 			{ typeof(string), EntryWindowString },
 		};
-		if (entry.ParentEntry != null)
+		if (entry.ParentEntry == null)
 		{
 			_timeLabel = Instantiate(_timeLine.EntryHudScriptableObject.TimeLabel, transform);
 			var inputField = _timeLabel.GetComponent<InputField>();

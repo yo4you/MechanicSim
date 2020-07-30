@@ -33,6 +33,9 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	[SerializeField]
 	private EntryHudScriptableObject _entryHudScriptableObject;
 
+	[SerializeField]
+	private GameObject _stretchLine;
+
 	private ScrollRect _scrollRect;
 	private GameObject[] _entryPrefabs;
 	private int _cursorIndex = 0;
@@ -78,9 +81,18 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
 	internal void RemoveEntry(TimeLineEntry entry)
 	{
+		foreach (var child in GetChildren(entry))
+		{
+			child.ParentEntry = entry.ParentEntry;
+		}
 		_entries.Remove(entry);
 		_cursorIndex = 0;
 		Redraw();
+	}
+
+	private IEnumerable<TimeLineEntry> GetChildren(TimeLineEntry entry)
+	{
+		return _entries.Where(e => e.ParentEntry == entry);
 	}
 
 	public void AddNewEntryAtCursor(int entryType)
@@ -90,17 +102,33 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
 	public void AddNewEntryAtCursor(TimeLineEntryType entryType)
 	{
-		var time = 0f;
-		if (_entries.Count != 0 && _cursorIndex - 1 >= 0)
-		{
-			time = _entries[_cursorIndex - 1].Time + 1;
-		}
-		_entries.Insert(Mathf.Clamp(_cursorIndex, 0, _entries.Count), new TimeLineEntry()
+		var entry = new TimeLineEntry()
 		{
 			Mechanic = null,
-			Time = time,
-			Type = entryType
-		});
+			Time = 0,
+			Type = entryType,
+			ParentEntry = null
+		};
+
+		if (_entries.Count != 0 && _cursorIndex - 1 >= 0)
+		{
+			var prevEntry = _entries[_cursorIndex - 1];
+			entry.Time = prevEntry.Time + 1;
+			if (entryType != TimeLineEntryType.Time && prevEntry.Type == entryType)
+			{
+				entry.ParentEntry = prevEntry;
+			}
+
+			if (_cursorIndex < _entries.Count)
+			{
+				var nextEntry = _entries[_cursorIndex];
+				if (nextEntry.Type != TimeLineEntryType.Time && nextEntry.Type == entryType)
+				{
+					nextEntry.ParentEntry = entry;
+				}
+			}
+		}
+		_entries.Insert(Mathf.Clamp(_cursorIndex, 0, _entries.Count), entry);
 		_cursorIndex++;
 		Redraw();
 	}
@@ -108,21 +136,81 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	public void Redraw()
 	{
 		_entryGameObjects.ForEach(Destroy);
-		_entries.Sort((entry0, entry1) => entry0.Time.CompareTo(entry1.Time));
-		for (int i = 0; i < _entries.Count; i++)
+		List<TimeLineEntry> sortedEntries = SortEntries();
+
+		//_entries.Sort((entry0, entry1) => entry0.Time.CompareTo(entry1.Time));
+		for (int i = 0; i < sortedEntries.Count; i++)
 		{
-			var entry = _entries[i];
-			var go = Instantiate(_entryPrefabs[(int)entry.Type], _contentTransform.transform);
+			var go = Instantiate(_entryPrefabs[(int)sortedEntries[i].Type], _contentTransform.transform);
 			_entryGameObjects.Add(go);
 			var hudentry = go.AddComponent<TimeLineEntryHud>();
-			hudentry.SetEntryData(entry, this);
+			hudentry.SetEntryData(sortedEntries[i], this);
 			go.GetComponent<RectTransform>().anchoredPosition -= new Vector2(0, (_entryHeight + _entryMargin) * i);
 		}
-		var reguiredContentHeight = (1 + _entries.Count) * (_entryHeight + _entryMargin);
+		var reguiredContentHeight = (1 + sortedEntries.Count) * (_entryHeight + _entryMargin);
 		if (_scrollRect != null && _scrollRect.content.rect.height < reguiredContentHeight)
 		{
 			_scrollRect.content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, reguiredContentHeight);
 		}
+		_overLayTransform.transform.SetAsLastSibling();
+
+		DrawStretchLines(sortedEntries);
+	}
+
+	private void DrawStretchLines(List<TimeLineEntry> sortedEntries)
+	{
+		var topLevelChildren = sortedEntries.Where(i => i.ParentEntry != null).Where(i => GetChildren(i).Count() == 0);
+		foreach (var child in topLevelChildren)
+		{
+			var startIndex = sortedEntries.IndexOf(child);
+			var indexStretch = 0;
+			TimeLineEntry parent = child;
+			while ((parent = parent.ParentEntry) != null)
+			{
+				indexStretch++;
+			}
+
+			if (indexStretch == 0)
+				continue;
+			var line = Instantiate(_stretchLine, _overLayTransform.transform).GetComponent<RectTransform>();
+			line.anchoredPosition -= new Vector2(0, ((_entryHeight + _entryMargin) * startIndex - _entryMargin));
+			var verticalLine = line.GetChild(0).GetComponent<RectTransform>();
+			var size = (_entryHeight + _entryMargin) * (indexStretch);
+			verticalLine.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size);
+			verticalLine.anchoredPosition = new Vector2(verticalLine.anchoredPosition.x, size / 2f);
+			_entryGameObjects.Add(line.gameObject);
+		}
+	}
+
+	private List<TimeLineEntry> SortEntries()
+	{
+		var sortedEntries = new List<TimeLineEntry>();
+		var baseLevelEntries = new List<TimeLineEntry>();
+		var childEntries = new List<TimeLineEntry>();
+		foreach (var entry in _entries)
+		{
+			if (entry.ParentEntry == null)
+			{
+				baseLevelEntries.Add(entry);
+			}
+			else
+			{
+				childEntries.Add(entry);
+			}
+		}
+		baseLevelEntries.Sort((entry0, entry1) => entry0.Time.CompareTo(entry1.Time));
+
+		for (int i = 0; i < baseLevelEntries.Count; i++)
+		{
+			sortedEntries.Add(baseLevelEntries[i]);
+			TimeLineEntry child;
+			while ((child = childEntries.FirstOrDefault(j => j.ParentEntry == sortedEntries.Last())) != default)
+			{
+				sortedEntries.Add(child);
+			}
+		}
+
+		return sortedEntries;
 	}
 
 	public void UnlockCursorLine()

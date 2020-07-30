@@ -11,7 +11,7 @@ public enum TimeLineEntryType
 
 public class TimeLineEntry
 {
-	public TimeLineEntry ParentEntry;
+	public TimeLineEntry ParentEntry = null;
 	public float Time = 0f;
 	public TimeLineEntryType Type;
 	public string Mechanic;
