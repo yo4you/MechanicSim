@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class TimeLineEntryHud : MonoBehaviour
 {
+	private const string _newMechanicPrefix = "NewMech_";
 	private TimeLineEntry _entry;
 	private TimeLineBehaviour _timeLine;
 
@@ -90,7 +91,9 @@ public class TimeLineEntryHud : MonoBehaviour
 			_entry.Parameters = new Dictionary<string, object>();
 			if (optionIndex == 0)
 			{
-				NewMechanic();
+				_entry.Parameters = null;
+				_entry.Mechanic = NewMechanic();
+				_timeLine.Redraw();
 			}
 			else
 			{
@@ -100,8 +103,21 @@ public class TimeLineEntryHud : MonoBehaviour
 		});
 	}
 
-	private void NewMechanic()
+	private string NewMechanic()
 	{
+		var nameIndex = 0;
+		while (_mainTimeLine.Mechanics.ContainsKey(_newMechanicPrefix + (++nameIndex).ToString())) ;
+		var name = _newMechanicPrefix + nameIndex.ToString();
+		_mainTimeLine.AddMechanic(new Mechanic()
+		{
+			Name = name,
+			ParameterTypes = new Dictionary<string, Type>(),
+			FuncCall = null
+		});
+
+		FindObjectOfType<SubElementBehaviour>().AddWindow(name);
+		FindObjectOfType<SubElementBehaviour>().SetActiveWindow(name);
+		return name;
 	}
 
 	private void SetMechanic(string mechanicName)
@@ -111,7 +127,7 @@ public class TimeLineEntryHud : MonoBehaviour
 			return;
 		}
 		_entry.Mechanic = mechanicName;
-		var parameters = _mainTimeLine.Mechanics[mechanicName].Parameters;
+		var parameters = _mainTimeLine.Mechanics[mechanicName].ParameterTypes;
 		foreach (var parameter in parameters)
 		{
 			_entry.Parameters.TryGetValue(parameter.Key, out object existingEntry);

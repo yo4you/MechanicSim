@@ -12,15 +12,14 @@ public static class BaseMechanics
 		return (from info in typeof(BaseMechanicDefinitions).GetMethods()
 				where info.DeclaringType != typeof(object)
 				let parameters = from param in info.GetParameters()
-										  select new KeyValuePair<string, Type>(param.Name, param.ParameterType)
+								 select new KeyValuePair<string, Type>(param.Name, param.ParameterType)
 
-						 select new Mechanic()
-						 {
-							 Name = info.Name,
-							 TimeLine = null,
-							 Parameters = parameters.ToDictionary(kv => kv.Key, kv => kv.Value),
-							 FuncCall = info.Name
-						 }).ToList();
+				select new Mechanic()
+				{
+					Name = info.Name,
+					TimeLine = null,
+					ParameterTypes = parameters.ToDictionary(kv => kv.Key, kv => kv.Value),
+					FuncCall = info.Name
+				}).ToList();
 	}
-
 }

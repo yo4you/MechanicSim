@@ -18,6 +18,7 @@ public class MainTimeLineBehaviour : MonoBehaviour
 	private Dictionary<string, Mechanic> _mechanics = new Dictionary<string, Mechanic>();
 	private TimeLineBehaviour _hudTimeLine;
 	public Dictionary<string, Mechanic> Mechanics { get => _mechanics; }
+	public Dictionary<string, Mechanic> CustomMechanics { get; } = new Dictionary<string, Mechanic>();
 
 	private void Start()
 	{
@@ -37,6 +38,15 @@ public class MainTimeLineBehaviour : MonoBehaviour
 		_fightData.Mechanics.ForEach(addmech);
 		BaseMechanics.Mechanics.Value.ForEach(addmech);
 
+		_fightData.Mechanics.ForEach(addmech);
+
+		_fightData.Mechanics.ForEach((i) => CustomMechanics.Add(i.Name, i));
 		_hudTimeLine.SetEntries(_fightData.MechanicTimeLine.TimeLineEntries);
+	}
+
+	public void AddMechanic(Mechanic mech)
+	{
+		Mechanics.Add(mech.Name, mech);
+		CustomMechanics.Add(mech.Name, mech);
 	}
 }

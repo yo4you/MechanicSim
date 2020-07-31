@@ -5,6 +5,6 @@ public class Mechanic
 {
 	public string Name;
 	public MechanicTimeLine TimeLine;
-	public Dictionary<string, Type> Parameters = default;
+	public Dictionary<string, Type> ParameterTypes = default;
 	public string FuncCall = default;
 }
