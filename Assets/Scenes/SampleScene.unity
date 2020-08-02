@@ -38239,7 +38239,7 @@ GameObject:
   - component: {fileID: 713732184}
   - component: {fileID: 713732183}
   m_Layer: 5
-  m_Name: SubElementMask
+  m_Name: BackGround
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -50365,7 +50365,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tabPrefab: {fileID: 6821916654045739522, guid: 14ecb108fe5c7ea49b5039caaf8ab3af, type: 3}
+  _addTabDropDownPrefab: {fileID: 8475002003259397922, guid: 213175eb0c9a4f64c90bba56525a93ab, type: 3}
   _tabWidth: 100
+  _maxTabs: 9
 --- !u!114 &926378502
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -95888,7 +95890,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -473.8, y: -0.7}
+  m_AnchoredPosition: {x: -475.5298, y: -5.3}
   m_SizeDelta: {x: 24.781128, y: 24.347515}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1753023858
@@ -95911,7 +95913,7 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.754717, g: 0.754717, b: 0.754717, a: 1}
+    m_NormalColor: {r: 0.6627451, g: 0.6627451, b: 0.6627451, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
