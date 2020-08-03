@@ -2,10 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 public class MainTimeLineBehaviour : MonoBehaviour
@@ -28,21 +25,38 @@ public class MainTimeLineBehaviour : MonoBehaviour
 		LoadMechanic("Test0");
 	}
 
+	public void Rename(string prevName, string newName)
+	{
+		var renamedMechanic = CustomMechanics[prevName];
+		renamedMechanic.Name = newName;
+		CustomMechanics.Remove(prevName);
+		CustomMechanics.Add(newName, renamedMechanic);
+
+		CombineMechanicDictionaries();
+		_hudTimeLine.Rename(prevName, newName);
+	}
+
 	private void LoadMechanic(string name)
 	{
 		_title.text = _titlePrefix + name;
 		// TODO read json file based on name
 		_fightData = new FightData();
 		//
-		void addmech(Mechanic mech) => Mechanics.Add(mech.Name, mech);
-		_fightData.Mechanics.ForEach(addmech);
-		BaseMechanics.Mechanics.Value.ForEach(addmech);
-
-		_fightData.Mechanics.ForEach(addmech);
 
 		_fightData.Mechanics.ForEach((i) => CustomMechanics.Add(i.Name, i));
+		CombineMechanicDictionaries();
+
 		_hudTimeLine.SetEntries(_fightData.MechanicTimeLine.TimeLineEntries);
 	}
+
+	private void CombineMechanicDictionaries()
+	{
+		_mechanics = new Dictionary<string, Mechanic>();
+		BaseMechanics.Mechanics.Value.ForEach(AddMechanicToDict);
+		CustomMechanics.Values.ToList().ForEach(AddMechanicToDict);
+	}
+
+	private void AddMechanicToDict(Mechanic mech) => Mechanics.Add(mech.Name, mech);
 
 	public void AddMechanic(Mechanic mech)
 	{

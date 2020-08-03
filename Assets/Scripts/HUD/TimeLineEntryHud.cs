@@ -92,7 +92,7 @@ public class TimeLineEntryHud : MonoBehaviour
 			if (optionIndex == 0)
 			{
 				_entry.Parameters = null;
-				_entry.Mechanic = NewMechanic();
+				_entry.Mechanic = CreateNewMechanic();
 				_timeLine.Redraw();
 			}
 			else
@@ -103,7 +103,7 @@ public class TimeLineEntryHud : MonoBehaviour
 		});
 	}
 
-	private string NewMechanic()
+	private string CreateNewMechanic()
 	{
 		var nameIndex = 0;
 		while (_mainTimeLine.Mechanics.ContainsKey(_newMechanicPrefix + (++nameIndex).ToString())) ;
@@ -112,6 +112,7 @@ public class TimeLineEntryHud : MonoBehaviour
 		{
 			Name = name,
 			ParameterTypes = new Dictionary<string, Type>(),
+			TimeLine = new MechanicTimeLine(),
 			FuncCall = null
 		});
 

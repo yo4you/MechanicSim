@@ -15,19 +15,30 @@ public class SubElementBehaviour : MonoBehaviour
 	[SerializeField]
 	private GameObject _addTabDropDownPrefab;
 
-	private List<string> _tabs = new List<string>();
-	private List<GameObject> _tabGameObjects = new List<GameObject>();
-	private ToggleGroup _toggleGroup;
-	private Button _addButton;
-	private int _activeTabIndex = -1;
-
 	[SerializeField]
 	private float _tabWidth = 300f;
 
 	[SerializeField]
 	private int _maxTabs = 9;
 
+	[SerializeField]
+	private GameObject _mechanicEditorWidnowPrefab;
+
 	private MainTimeLineBehaviour _mainTimeLine;
+	private List<string> _tabs = new List<string>();
+	private List<GameObject> _tabGameObjects = new List<GameObject>();
+
+	internal void Rename(string name, string newName)
+	{
+		var i = _tabs.IndexOf(name);
+		_tabs[_tabs.IndexOf(name)] = newName;
+		RedrawTabbar();
+	}
+
+	private ToggleGroup _toggleGroup;
+	private Button _addButton;
+	private int _activeTabIndex = -1;
+	private GameObject _windowGameObject;
 
 	private void Start()
 	{
@@ -70,8 +81,7 @@ public class SubElementBehaviour : MonoBehaviour
 			_tabs.RemoveAt(_tabs.Count - 1);
 		}
 		_tabs.Insert(0, mechanic);
-		_activeTabIndex = 0;
-
+		SetActiveTab(0);
 		RedrawTabbar();
 	}
 
@@ -99,7 +109,10 @@ public class SubElementBehaviour : MonoBehaviour
 			toggle.GetComponentInChildren<Button>().onClick.AddListener(() => CloseWindow(_tabs[j]));
 		}
 		if (_activeTabIndex >= 0)
+		{
+			_activeTabIndex %= toggles.Count;
 			toggles[_activeTabIndex].SetIsOnWithoutNotify(true);
+		}
 	}
 
 	private void SetActiveTab(int i)
@@ -110,6 +123,11 @@ public class SubElementBehaviour : MonoBehaviour
 
 	private void RedrawContent()
 	{
+		Destroy(_windowGameObject);
+		if (_activeTabIndex < 0)
+			return;
+		_windowGameObject = Instantiate(_mechanicEditorWidnowPrefab, transform);
+		_windowGameObject.GetComponent<MechanicEditor>().Load(_tabs[_activeTabIndex]);
 	}
 
 	public void CloseWindow(string mechanic)
@@ -120,6 +138,7 @@ public class SubElementBehaviour : MonoBehaviour
 		}
 		_tabs.Remove(mechanic);
 		RedrawTabbar();
+		SetActiveTab(_activeTabIndex);
 	}
 
 	public void SetActiveWindow(string mechanic)

@@ -36,6 +36,9 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	[SerializeField]
 	private GameObject _stretchLine;
 
+	[SerializeField]
+	private GameObject _dropdownPrefab;
+
 	private ScrollRect _scrollRect;
 	private GameObject[] _entryPrefabs;
 	private int _cursorIndex = 0;
@@ -44,37 +47,39 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
 	private float _entryHeight;
 	private float _heightScale;
-	private Dropdown _dropdown;
+	private GameObject _button;
 	private bool _cursorLocked = false;
 
 	public EntryHudScriptableObject EntryHudScriptableObject { get => _entryHudScriptableObject; }
-
-	private void Start()
-	{
-		_scrollRect = GetComponent<ScrollRect>();
-		_addSeperator.enabled = false;
-		_entryPrefabs = new GameObject[] { _prefabTimeEntry, _prefabRandomEntry, _prefabIfElseEntry, _prefabDistributeEntry };
-		_contentTransform = _scrollRect.content;
-		_entryHeight = _prefabTimeEntry.GetComponent<RectTransform>().rect.height;
-		_heightScale = FindObjectOfType<CanvasScaler>().referenceResolution.y / Screen.height;
-		_dropdown = GetComponentInChildren<Dropdown>();
-		_dropdown.AddOptions(Enum.GetNames(typeof(TimeLineEntryType)).ToList());
-		_dropdown.gameObject.SetActive(false);
-	}
 
 	private void Update()
 	{
 		if (!_cursorLocked)
 		{
-			_cursorIndex = (int)(((Input.mousePosition.y - _contentTransform.position.y) * _heightScale - _entryMargin * 2f) / -((_entryHeight + _entryMargin)));
+			_cursorIndex = (int)((
+				(Input.mousePosition.y - _contentTransform.position.y) * _heightScale - _entryMargin * 2f)
+				/ -(_entryHeight + _entryMargin));
 			_cursorIndex = Mathf.Clamp(_cursorIndex, 0, _entries.Count);
 			var seperatorPos = _addSeperator.rectTransform.anchoredPosition;
-			_addSeperator.rectTransform.anchoredPosition = new Vector2(seperatorPos.x, -(_entryHeight + _entryMargin) * _cursorIndex);
+			_addSeperator.rectTransform.anchoredPosition =
+				new Vector2(seperatorPos.x, -(_entryHeight + _entryMargin) * _cursorIndex);
 		}
 	}
 
 	internal void SetEntries(List<TimeLineEntry> timeLineEntries)
 	{
+		_scrollRect = GetComponent<ScrollRect>();
+		_addSeperator.enabled = false;
+		_entryPrefabs = new GameObject[] {
+			_prefabTimeEntry,
+			_prefabRandomEntry,
+			_prefabIfElseEntry,
+			_prefabDistributeEntry };
+		_contentTransform = _scrollRect.content;
+		_entryHeight = _prefabTimeEntry.GetComponent<RectTransform>().rect.height;
+		_heightScale = FindObjectOfType<CanvasScaler>().referenceResolution.y / Screen.height;
+		_button = _addSeperator.GetComponentInChildren<Button>().gameObject;
+
 		_entries = timeLineEntries;
 		Redraw();
 	}
@@ -138,7 +143,6 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 		_entryGameObjects.ForEach(Destroy);
 		List<TimeLineEntry> sortedEntries = SortEntries();
 
-		//_entries.Sort((entry0, entry1) => entry0.Time.CompareTo(entry1.Time));
 		for (int i = 0; i < sortedEntries.Count; i++)
 		{
 			var go = Instantiate(_entryPrefabs[(int)sortedEntries[i].Type], _contentTransform.transform);
@@ -226,18 +230,29 @@ public class TimeLineBehaviour : MonoBehaviour, IPointerEnterHandler, IPointerEx
 	public void SpawnDropDown()
 	{
 		LockCursorLine();
-		_dropdown.gameObject.SetActive(true);
-		_dropdown.Show();
-		DropDownCallbackRegistry.RegisterCallbacks(() =>
+		var dropDown = Instantiate(_dropdownPrefab, _button.transform).GetComponent<Dropdown>();
+		dropDown.AddOptions(Enum.GetNames(typeof(TimeLineEntryType)).ToList());
+		dropDown.onValueChanged.AddListener((i) =>
 		{
+			AddNewEntryAtCursor(i);
 			UnlockCursorLine();
-			AddNewEntryAtCursor(_dropdown.value);
-		}, false);
+			Destroy(dropDown.gameObject);
+		});
+		dropDown.Show();
 	}
 
 	public void OnPointerEnter(PointerEventData eventData)
 	{
 		_addSeperator.enabled = true;
+	}
+
+	public void Rename(string prevName, string newName)
+	{
+		foreach (TimeLineEntry entry in _entries.Where(e => e.Mechanic == prevName))
+		{
+			entry.Mechanic = newName;
+		}
+		Redraw();
 	}
 
 	public void OnPointerExit(PointerEventData eventData)
