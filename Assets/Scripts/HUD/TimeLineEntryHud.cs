@@ -32,11 +32,11 @@ public class TimeLineEntryHud : MonoBehaviour
 		_entry = entry;
 		_timeLine = timeLineBehaviour;
 		GetComponentInChildren<Button>().onClick.AddListener(() => timeLineBehaviour.RemoveEntry(entry));
-		if (entry.Type != TimeLineEntryType.Time)
+		if (entry.IsParentingType())
 		{
 			_margin = _marginWithIcon;
 		}
-		switch (entry.Type)
+		switch ((TimeLineEntryType)entry.Type)
 		{
 			case TimeLineEntryType.Random:
 			case TimeLineEntryType.Time:
@@ -153,7 +153,6 @@ public class TimeLineEntryHud : MonoBehaviour
 		for (int i = 0; i < count; i++)
 		{
 			var rect = _parameterWindowsToAllign[i].GetComponent<RectTransform>();
-			//print(_parameterWindowsToAllign[i].name + rect.anchorMin.ToString() + rect.anchorMax.ToString());
 			rect.anchorMin = new Vector2(_margin.x + i * inverseCount, 0f);
 			rect.anchorMax = new Vector2(_margin.x + (i + 1) * inverseCount, 1f);
 		}

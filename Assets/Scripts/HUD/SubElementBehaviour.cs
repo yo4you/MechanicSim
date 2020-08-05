@@ -27,18 +27,11 @@ public class SubElementBehaviour : MonoBehaviour
 	private MainTimeLineBehaviour _mainTimeLine;
 	private List<string> _tabs = new List<string>();
 	private List<GameObject> _tabGameObjects = new List<GameObject>();
-
-	internal void Rename(string name, string newName)
-	{
-		var i = _tabs.IndexOf(name);
-		_tabs[_tabs.IndexOf(name)] = newName;
-		RedrawTabbar();
-	}
-
 	private ToggleGroup _toggleGroup;
 	private Button _addButton;
 	private int _activeTabIndex = -1;
 	private GameObject _windowGameObject;
+	private List<GameObject> _dropDownGameObject = new List<GameObject>();
 
 	private void Start()
 	{
@@ -68,6 +61,7 @@ public class SubElementBehaviour : MonoBehaviour
 			Destroy(dropDown.gameObject);
 		});
 		dropDown.Show();
+		_dropDownGameObject.Add(dropDown.gameObject);
 	}
 
 	public void AddWindow(string mechanic)
@@ -83,6 +77,21 @@ public class SubElementBehaviour : MonoBehaviour
 		_tabs.Insert(0, mechanic);
 		SetActiveTab(0);
 		RedrawTabbar();
+	}
+
+	public void Rename(string name, string newName)
+	{
+		_tabs[_tabs.IndexOf(name)] = newName;
+		RedrawTabbar();
+	}
+
+	private void Update()
+	{
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			_dropDownGameObject.ForEach(Destroy);
+			_dropDownGameObject = new List<GameObject>();
+		}
 	}
 
 	private void RedrawTabbar()

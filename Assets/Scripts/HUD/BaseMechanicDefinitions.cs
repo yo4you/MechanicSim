@@ -42,4 +42,14 @@ public static partial class BaseMechanicDefinitions
 	{
 		return -1f;
 	}
+
+	public static string GetString(string name)
+	{
+		return "";
+	}
+
+	public static Vector2 GetPos(string name)
+	{
+		return new Vector2();
+	}
 }

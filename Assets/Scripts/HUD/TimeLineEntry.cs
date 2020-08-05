@@ -9,11 +9,13 @@ public enum TimeLineEntryType
 	Distribute,
 }
 
-public class TimeLineEntry
+public class TimeLineEntry : Entry
 {
-	public TimeLineEntry ParentEntry = null;
-	public float Time = 0f;
-	public TimeLineEntryType Type;
 	public string Mechanic;
 	public Dictionary<string, object> Parameters = new Dictionary<string, object>();
+
+	public override bool IsParentingType()
+	{
+		return Type != (int)TimeLineEntryType.Time;
+	}
 }
