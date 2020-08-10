@@ -24,6 +24,9 @@ public class SubElementBehaviour : MonoBehaviour
 	[SerializeField]
 	private GameObject _mechanicEditorWidnowPrefab;
 
+	[SerializeField]
+	private GameObject _valueEditorWindowPrefab;
+
 	private MainTimeLineBehaviour _mainTimeLine;
 	private List<string> _tabs = new List<string>();
 	private List<GameObject> _tabGameObjects = new List<GameObject>();
@@ -32,6 +35,8 @@ public class SubElementBehaviour : MonoBehaviour
 	private int _activeTabIndex = -1;
 	private GameObject _windowGameObject;
 	private List<GameObject> _dropDownGameObject = new List<GameObject>();
+
+	private readonly List<string> _specialWindows = new List<string>() { "[ValueEditor]" };
 
 	private void Start()
 	{
@@ -48,7 +53,7 @@ public class SubElementBehaviour : MonoBehaviour
 					  from option in _mainTimeLine.CustomMechanics
 					  where !_tabs.Contains(option.Key)
 					  select option.Key).ToList();
-
+		options.AddRange(_specialWindows.Except(_tabs));
 		if (options.Count() == 0)
 		{
 			Destroy(dropDown.gameObject);
@@ -135,8 +140,22 @@ public class SubElementBehaviour : MonoBehaviour
 		Destroy(_windowGameObject);
 		if (_activeTabIndex < 0)
 			return;
-		_windowGameObject = Instantiate(_mechanicEditorWidnowPrefab, transform);
-		_windowGameObject.GetComponent<MechanicEditor>().Load(_tabs[_activeTabIndex]);
+		string mechanicName = _tabs[_activeTabIndex];
+
+		if (_specialWindows.Contains(mechanicName))
+		{
+			// todo use a dictionary for this, put it in the inspector somehow
+			if (mechanicName == "[ValueEditor]")
+			{
+				_windowGameObject = Instantiate(_valueEditorWindowPrefab, transform);
+				_windowGameObject.GetComponentInChildren<ValueEditorBehaviour>().SetEntries(_mainTimeLine.Values);
+			}
+		}
+		else
+		{
+			_windowGameObject = Instantiate(_mechanicEditorWidnowPrefab, transform);
+			_windowGameObject.GetComponent<MechanicEditor>().Load(mechanicName);
+		}
 	}
 
 	public void CloseWindow(string mechanic)

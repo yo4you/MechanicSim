@@ -9,18 +9,118 @@ public class ValueEditorBehaviour : EntryCollectionHud<ValueEntry>
 	[SerializeField]
 	private GameObject _prefabEmptyValue;
 
+	[SerializeField]
+	private GameObject _prefabChildValue;
+
 	protected override GameObject CreateEntry(List<ValueEntry> sortedEntries, int i)
 	{
-		var go = Instantiate(_entryPrefabs[(int)sortedEntries[i].Type], _contentTransform.transform);
-		// 		var hudentry = go.AddComponent<TimeLineEntryHud>();
-		// 		hudentry.SetEntryData(sortedEntries[i], this);
-		throw new NotImplementedException();
+		ValueEntry entry = sortedEntries[i];
+		var entryName = entry.Label.Clone();
+		var hasParent = entry.ParentEntry != null;
+		var go = Instantiate(hasParent ? _prefabChildValue : _prefabEmptyValue, _contentTransform.transform);
+		go.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveEntry(entry));
+		var input = go.GetComponentInChildren<InputField>();
+		if (input != null)
+		{
+			input.SetTextWithoutNotify(entry.Label);
+			input.onEndEdit.AddListener((s) => Rename(entry, s));
+		}
+		var type = (ParameterType)(entry.Type % ((int)ParameterType.POS + 1));
+		GameObject field = null;
+		switch (type)
+		{
+			case ParameterType.NUM:
+				field = NewNumField(entry, go);
+				break;
+
+			case ParameterType.STRING:
+				field = NewStringField(entry, go);
+				break;
+
+			case ParameterType.POS:
+				field = NewVec2Field(entry, go);
+				break;
+
+			default:
+				break;
+		}
+		var rect = field.GetComponent<RectTransform>();
+		rect.anchorMin = new Vector2(.5f, rect.anchorMin.y);
+		rect.anchorMax = new Vector2(.9f, rect.anchorMax.y);
 		return go;
+	}
+
+	private GameObject NewVec2Field(ValueEntry entry, GameObject go)
+	{
+		GameObject field = Instantiate(EntryHudScriptableObject.Vec2Field, go.transform);
+		var inputs = field.GetComponentsInChildren<InputField>();
+		Vector2 pos = new Vector2();
+		Vector2 getpos()
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				if (float.TryParse(inputs[i].text, out float result))
+				{
+					pos[i] = result;
+				}
+			}
+			return pos;
+		}
+		for (int i = 0; i < inputs.Length; i++)
+		{
+			InputField input = inputs[i];
+			if (entry.Value is Vector2 entryValue)
+			{
+				input.text = entryValue[i].ToString();
+			}
+			input.onEndEdit.AddListener((s) =>
+			{
+				entry.Value = getpos();
+				Redraw();
+			});
+		}
+
+		return field;
+	}
+
+	private GameObject NewStringField(ValueEntry entry, GameObject go)
+	{
+		GameObject field = Instantiate(EntryHudScriptableObject.StringField, go.transform);
+		var input = field.GetComponentInChildren<InputField>();
+		input.SetTextWithoutNotify((entry.Value ?? "").ToString());
+		input.onEndEdit.AddListener((s) =>
+		{
+			entry.Value = s;
+			Redraw();
+		});
+		return field;
+	}
+
+	private GameObject NewNumField(ValueEntry entry, GameObject go)
+	{
+		GameObject field = Instantiate(EntryHudScriptableObject.NumField, go.transform);
+		var input = field.GetComponentInChildren<InputField>();
+		input.SetTextWithoutNotify((entry.Value ?? 0f).ToString());
+		input.onEndEdit.AddListener((s) =>
+		{
+			if (float.TryParse(s, out float result))
+			{
+				entry.Value = result;
+				Redraw();
+			}
+		});
+		return field;
+	}
+
+	private void Rename(ValueEntry entry, string s)
+	{
+		entry.Label = s;
+		Redraw();
 	}
 
 	protected override void DisplayDropDownMenu(Dropdown dropDown)
 	{
-		dropDown.AddOptions(Enum.GetNames(typeof(TimeLineEntryType)).ToList());
+		dropDown.AddOptions(Enum.GetNames(typeof(ParameterType)).ToList());
 		dropDown.onValueChanged.AddListener((i) =>
 		{
 			AddNewEntryAtCursor(i);
@@ -32,7 +132,9 @@ public class ValueEditorBehaviour : EntryCollectionHud<ValueEntry>
 	internal override void SetEntries(List<ValueEntry> timeLineEntries)
 	{
 		_entryPrefabs = new GameObject[] {
-			_prefabEmptyValue,};
+			_prefabEmptyValue,
+			_prefabChildValue,
+		};
 		base.SetEntries(timeLineEntries);
 	}
 }

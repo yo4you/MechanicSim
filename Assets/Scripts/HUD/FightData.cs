@@ -5,7 +5,8 @@ public class FightData
 	public FightData()
 	{
 	}
+
 	public List<Mechanic> Mechanics = new List<Mechanic>();
 	public MechanicTimeLine MechanicTimeLine = new MechanicTimeLine();
-
+	public List<ValueEntry> ValueStores = new List<ValueEntry>();
 }

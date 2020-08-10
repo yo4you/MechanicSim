@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +15,7 @@ public class MainTimeLineBehaviour : MonoBehaviour
 	private TimeLineBehaviour _hudTimeLine;
 	public Dictionary<string, Mechanic> Mechanics { get => _mechanics; }
 	public Dictionary<string, Mechanic> CustomMechanics { get; } = new Dictionary<string, Mechanic>();
+	public List<ValueEntry> Values { get; private set; } = new List<ValueEntry>();
 
 	private void Start()
 	{
@@ -47,6 +47,7 @@ public class MainTimeLineBehaviour : MonoBehaviour
 		CombineMechanicDictionaries();
 
 		_hudTimeLine.SetEntries(_fightData.MechanicTimeLine.TimeLineEntries);
+		Values = _fightData.ValueStores;
 	}
 
 	private void CombineMechanicDictionaries()
