@@ -8,4 +8,6 @@ public class EntryHudScriptableObject : ScriptableObject
 	public GameObject Vec2Field;
 	public GameObject NumField;
 	public GameObject StringField;
+	public GameObject SwitchToValueParamButton;
+	public GameObject ValuePicker;
 }

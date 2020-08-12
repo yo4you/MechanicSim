@@ -17,3 +17,5 @@ MonoBehaviour:
   Vec2Field: {fileID: 8501436416858665696, guid: 9127f2c147b990b4d8ee85fb54877c06, type: 3}
   NumField: {fileID: 5657202803026543527, guid: 24a40e65e8de26541ba75250d8c07924, type: 3}
   StringField: {fileID: 4731904965347522395, guid: 4e0d229237b9f3b45ac0b53c707f98dc, type: 3}
+  SwitchToValueParamButton: {fileID: 1540659989233520010, guid: 88e114d13fb498b449edd5378f31f6ba, type: 3}
+  ValuePicker: {fileID: 0}

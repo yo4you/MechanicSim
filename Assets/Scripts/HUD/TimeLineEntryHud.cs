@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 
 public class TimeLineEntryHud : MonoBehaviour
 {
@@ -142,10 +144,18 @@ public class TimeLineEntryHud : MonoBehaviour
 
 			var window = _createEntryWindowForType[parameterSignature.Value].Invoke(existingEntry);
 			window.GetComponentInChildren<Text>().text = parameterSignature.Key;
+			var button = Instantiate(_timeLine.EntryHudScriptableObject.SwitchToValueParamButton, window.transform).GetComponent<Button>();
+			button.onClick.AddListener(() => SwapParameterType(existingEntry));
 			parameterWindowsToAllign.Add(window);
 		}
 
 		AlignParameterWidnows(parameterWindowsToAllign);
+	}
+
+	private void SwapParameterType(ParameterData parameter)
+	{
+		parameter.IsRefrenceValue = !parameter.IsRefrenceValue;
+		_timeLine.Redraw();
 	}
 
 	private void AlignParameterWidnows(List<GameObject> windows)
@@ -175,6 +185,10 @@ public class TimeLineEntryHud : MonoBehaviour
 
 	public GameObject EntryWindowVec2(ParameterData parameter)
 	{
+		if (parameter.IsRefrenceValue)
+		{
+			return InstantiateRefrenceValuePicker(parameter, ParameterType.POS);
+		}
 		var readval = (Vector2)(parameter.Value ?? Vector2.zero);
 		GameObject window = Instantiate(_timeLine.EntryHudScriptableObject.Vec2Field, transform);
 		var inputs = window.GetComponentsInChildren<InputField>();
@@ -206,6 +220,11 @@ public class TimeLineEntryHud : MonoBehaviour
 
 	private GameObject EntryWindowString(ParameterData parameter)
 	{
+		if (parameter.IsRefrenceValue)
+		{
+			return InstantiateRefrenceValuePicker(parameter, ParameterType.STRING);
+		}
+
 		var readval = (string)(parameter.Value ?? "");
 		GameObject window = Instantiate(_timeLine.EntryHudScriptableObject.StringField, transform);
 		var input = window.GetComponentInChildren<InputField>();
@@ -214,8 +233,33 @@ public class TimeLineEntryHud : MonoBehaviour
 		return window;
 	}
 
+	private GameObject InstantiateRefrenceValuePicker(ParameterData parameter, ParameterType type)
+	{
+		List<string> options = (
+						from val in _mainTimeLine.RefrenceValues
+						where val.Type == (int)type
+						select val.Label).ToList();
+
+		var valuePicker = Instantiate(_timeLine.EntryHudScriptableObject.ValuePicker, transform);
+		var dropDown = valuePicker.GetComponentInChildren<Dropdown>();
+		dropDown.AddOptions(options);
+
+		if (parameter.RefrenceValue != null)
+			dropDown.SetValueWithoutNotify(options.IndexOf(parameter.RefrenceValue.Label ?? ""));
+		dropDown.onValueChanged.AddListener(
+			(optionIndex) =>
+			{
+				parameter.RefrenceValue = _mainTimeLine.RefrenceValues.FirstOrDefault((value) => value.Label == options[optionIndex]);
+			});
+		return valuePicker;
+	}
+
 	private GameObject EntryWindowNum(ParameterData parameter)
 	{
+		if (parameter.IsRefrenceValue)
+		{
+			return InstantiateRefrenceValuePicker(parameter, ParameterType.NUM);
+		}
 		var readval = (float)(parameter.Value ?? 0f);
 		GameObject window = Instantiate(_timeLine.EntryHudScriptableObject.NumField, transform);
 		window.GetComponentInChildren<Text>().text = name;
