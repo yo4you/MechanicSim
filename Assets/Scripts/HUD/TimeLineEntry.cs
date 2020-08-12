@@ -12,7 +12,7 @@ public enum TimeLineEntryType
 public class TimeLineEntry : Entry
 {
 	public string Mechanic;
-	public Dictionary<string, object> Parameters = new Dictionary<string, object>();
+	public Dictionary<string, ParameterData> Parameters = new Dictionary<string, ParameterData>();
 
 	public override bool IsParentingType()
 	{

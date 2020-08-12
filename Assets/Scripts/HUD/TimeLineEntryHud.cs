@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class TimeLineEntryHud : MonoBehaviour
 {
 	private const string _newMechanicPrefix = "NewMech_";
+	private SubElementBehaviour _subElementBehaviour;
 	private TimeLineEntry _entry;
 	private TimeLineBehaviour _timeLine;
 
@@ -17,21 +18,19 @@ public class TimeLineEntryHud : MonoBehaviour
 
 	public delegate void ChangeHandler();
 
-	private delegate Func<object> EntryWindowInOut(object input, string name);
+	private delegate GameObject CreateEntryWindowHandler(ParameterData parameter);
 
-	public event ChangeHandler OnChange;
-
-	private Dictionary<Type, EntryWindowInOut> _entryWindowDefinitions = default;
-	private List<GameObject> _parameterWindowsToAllign = new List<GameObject>();
+	private Dictionary<Type, CreateEntryWindowHandler> _createEntryWindowForType = new Dictionary<Type, CreateEntryWindowHandler>();
 
 	private Vector2 _margin = new Vector2(0.15f, 0.04f);
 	private Vector2 _marginWithIcon = new Vector2(0.20f, 0.04f);
 
 	internal void SetEntryData(TimeLineEntry entry, TimeLineBehaviour timeLineBehaviour)
 	{
+		_subElementBehaviour = FindObjectOfType<SubElementBehaviour>();
 		_entry = entry;
 		_timeLine = timeLineBehaviour;
-		GetComponentInChildren<Button>().onClick.AddListener(() => timeLineBehaviour.RemoveEntry(entry));
+		GetComponentInChildren<UnityEngine.UI.Button>().onClick.AddListener(() => timeLineBehaviour.RemoveEntry(entry));
 		if (entry.IsParentingType())
 		{
 			_margin = _marginWithIcon;
@@ -56,20 +55,23 @@ public class TimeLineEntryHud : MonoBehaviour
 
 	private void ConstructEmptyEntry(TimeLineEntry entry)
 	{
-		_mainTimeLine = FindObjectOfType<MainTimeLineBehaviour>();
-		_entryWindowDefinitions = new Dictionary<Type, EntryWindowInOut>()
+		_createEntryWindowForType = new Dictionary<Type, CreateEntryWindowHandler>
 		{
-			{ typeof(Vector2), EntryWindowVec2 },
-			{ typeof(float), EntryWindowNum },
-			{ typeof(string), EntryWindowString },
+			{typeof(float), EntryWindowNum  },
+			{typeof(Vector2), EntryWindowVec2  },
+			{typeof(string), EntryWindowString  },
 		};
+
+		_mainTimeLine = FindObjectOfType<MainTimeLineBehaviour>();
+
 		if (entry.ParentEntry == null)
 		{
 			_timeLabel = Instantiate(_timeLine.EntryHudScriptableObject.TimeLabel, transform);
 			var inputField = _timeLabel.GetComponent<InputField>();
-			inputField.SetTextWithoutNotify(ToTimeStamp(entry.Time));
+			inputField.SetTextWithoutNotify(TimeStampUtil.ToTimeStamp(entry.Time));
 			inputField.onEndEdit.AddListener((inputString) => SubmitTime(inputString));
 		}
+
 		_castMenu = Instantiate(_timeLine.EntryHudScriptableObject.CastLabel, transform);
 
 		var castRect = _castMenu.GetComponent<RectTransform>();
@@ -88,7 +90,7 @@ public class TimeLineEntryHud : MonoBehaviour
 		}
 		dropdown.onValueChanged.AddListener((optionIndex) =>
 		{
-			_entry.Parameters = new Dictionary<string, object>();
+			_entry.Parameters = new Dictionary<string, ParameterData>();
 			if (optionIndex == 0)
 			{
 				_entry.Parameters = null;
@@ -116,8 +118,8 @@ public class TimeLineEntryHud : MonoBehaviour
 			FuncCall = null
 		});
 
-		FindObjectOfType<SubElementBehaviour>().AddWindow(name);
-		FindObjectOfType<SubElementBehaviour>().SetActiveWindow(name);
+		_subElementBehaviour.AddWindow(name);
+		_subElementBehaviour.SetActiveWindow(name);
 		return name;
 	}
 
@@ -128,31 +130,37 @@ public class TimeLineEntryHud : MonoBehaviour
 			return;
 		}
 		_entry.Mechanic = mechanicName;
-		var parameters = _mainTimeLine.Mechanics[mechanicName].ParameterTypes;
-		foreach (var parameter in parameters)
+		var mechanic = _mainTimeLine.Mechanics[mechanicName];
+		var parameterWindowsToAllign = new List<GameObject>();
+		foreach (var parameterSignature in mechanic.ParameterTypes)
 		{
-			_entry.Parameters.TryGetValue(parameter.Key, out object existingEntry);
+			if (!_entry.Parameters.TryGetValue(parameterSignature.Key, out ParameterData existingEntry))
+			{
+				existingEntry = new ParameterData();
+				_entry.Parameters[parameterSignature.Key] = existingEntry;
+			}
 
-			var func = _entryWindowDefinitions[parameter.Value].Invoke(existingEntry, parameter.Key);
-			OnChange += () => _entry.Parameters[parameter.Key] = func.Invoke();
+			var window = _createEntryWindowForType[parameterSignature.Value].Invoke(existingEntry);
+			window.GetComponentInChildren<Text>().text = parameterSignature.Key;
+			parameterWindowsToAllign.Add(window);
 		}
 
-		AlignParameterWidnows();
+		AlignParameterWidnows(parameterWindowsToAllign);
 	}
 
-	private void AlignParameterWidnows()
+	private void AlignParameterWidnows(List<GameObject> windows)
 	{
-		if (_parameterWindowsToAllign.Count == 0)
+		if (windows.Count == 0)
 		{
 			return;
 		}
-		_parameterWindowsToAllign.Insert(0, _castMenu);
-		int count = _parameterWindowsToAllign.Count;
+		windows.Insert(0, _castMenu);
+		int count = windows.Count;
 
 		float inverseCount = (1f / count) * (1f - _margin.x - _margin.y);
 		for (int i = 0; i < count; i++)
 		{
-			var rect = _parameterWindowsToAllign[i].GetComponent<RectTransform>();
+			var rect = windows[i].GetComponent<RectTransform>();
 			rect.anchorMin = new Vector2(_margin.x + i * inverseCount, 0f);
 			rect.anchorMax = new Vector2(_margin.x + (i + 1) * inverseCount, 1f);
 		}
@@ -160,116 +168,66 @@ public class TimeLineEntryHud : MonoBehaviour
 
 	private void SubmitTime(string inputString)
 	{
-		var time = FromTimeStamp(inputString);
+		var time = TimeStampUtil.FromTimeStamp(inputString);
 		_entry.Time = time;
 		_timeLine.Redraw();
 	}
 
-	public static float FromTimeStamp(string time)
+	public GameObject EntryWindowVec2(ParameterData parameter)
 	{
-		if (float.TryParse(time, out float res))
-		{
-			return res;
-		}
-		var groups = Regex.Match(time, @"(\d*):(\d*)").Groups;
-		if (groups.Count == 3)
-		{
-			return (int.Parse(groups[1].ToString()) * 60) + int.Parse(groups[2].ToString());
-		}
-
-		return 0f;
-	}
-
-	public static string ToTimeStamp(float time)
-	{
-		string ToTwoPlaces(int digit)
-		{
-			var outp = "";
-			outp += digit / 10;
-			outp += digit % 10;
-			return outp;
-		}
-		return ToTwoPlaces((int)(time / 60f)) + ":" + ToTwoPlaces((int)(time % 60f));
-	}
-
-	public Func<object> EntryWindowVec2(object vec2, string name)
-	{
-		var readval = (Vector2)(vec2 ?? Vector2.zero);
+		var readval = (Vector2)(parameter.Value ?? Vector2.zero);
 		GameObject window = Instantiate(_timeLine.EntryHudScriptableObject.Vec2Field, transform);
-		FitParamaters(window, name);
 		var inputs = window.GetComponentsInChildren<InputField>();
 		for (int i = 0; i < inputs.Length; i++)
 		{
 			InputField input = inputs[i];
 			input.SetTextWithoutNotify(readval[i].ToString());
-			input.onEndEdit.AddListener((_) => ValueChanged());
-		}
-
-		return () =>
-		{
-			Vector2 pos = new Vector2(0, 0);
-
-			for (int i = 0; i < 2; i++)
+			input.onEndEdit.AddListener((_) =>
 			{
-				if (float.TryParse(inputs[0].text, out float res))
+				Vector2 pos = new Vector2(0, 0);
+
+				for (int j = 0; j < 2; j++)
 				{
-					pos[i] = res;
+					if (float.TryParse(inputs[j].text, out float res))
+					{
+						pos[j] = res;
+					}
+					else
+					{
+						pos = Vector2.zero;
+						break;
+					}
 				}
-				else
-				{
-					pos = Vector2.zero;
-					break;
-				}
-			}
-			return pos;
-		};
+				parameter.Value = pos;
+			});
+		}
+		return window;
 	}
 
-	private Func<object> EntryWindowString(object read, string name)
+	private GameObject EntryWindowString(ParameterData parameter)
 	{
-		var readval = (string)(read ?? "");
+		var readval = (string)(parameter.Value ?? "");
 		GameObject window = Instantiate(_timeLine.EntryHudScriptableObject.StringField, transform);
-		FitParamaters(window, name);
 		var input = window.GetComponentInChildren<InputField>();
 		input.SetTextWithoutNotify(readval);
-		input.onEndEdit.AddListener((_) => ValueChanged());
-
-		return () =>
-		{
-			return input.text;
-		};
+		input.onEndEdit.AddListener((newVal) => parameter.Value = newVal);
+		return window;
 	}
 
-	private Func<object> EntryWindowNum(object read, string name)
+	private GameObject EntryWindowNum(ParameterData parameter)
 	{
-		var readval = (float)(read ?? 0f);
+		var readval = (float)(parameter.Value ?? 0f);
 		GameObject window = Instantiate(_timeLine.EntryHudScriptableObject.NumField, transform);
 		window.GetComponentInChildren<Text>().text = name;
-		FitParamaters(window, name);
 		var input = window.GetComponentInChildren<InputField>();
 		input.SetTextWithoutNotify(readval.ToString());
-		input.onEndEdit.AddListener((_) => ValueChanged());
-		return () =>
+		input.onEndEdit.AddListener((newVal) =>
 		{
-			if (float.TryParse(input.text, out float result))
+			if (float.TryParse(newVal, out float result))
 			{
-				return result;
+				parameter.Value = result;
 			}
-			else
-			{
-				return 0;
-			}
-		};
-	}
-
-	private void ValueChanged()
-	{
-		OnChange?.Invoke();
-	}
-
-	private void FitParamaters(GameObject window, string name)
-	{
-		window.GetComponentInChildren<Text>().text = name;
-		_parameterWindowsToAllign.Add(window);
+		});
+		return window;
 	}
 }
