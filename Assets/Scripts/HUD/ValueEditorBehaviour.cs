@@ -12,20 +12,26 @@ public class ValueEditorBehaviour : EntryCollectionHud<ValueEntry>
 	[SerializeField]
 	private GameObject _prefabChildValue;
 
+	private MainTimeLineBehaviour _mainTimeline;
+
 	protected override GameObject CreateEntry(List<ValueEntry> sortedEntries, int i)
 	{
 		ValueEntry entry = sortedEntries[i];
 		var entryName = entry.Label.Clone();
 		var hasParent = entry.ParentEntry != null;
 		var go = Instantiate(hasParent ? _prefabChildValue : _prefabEmptyValue, _contentTransform.transform);
-		go.GetComponentInChildren<Button>().onClick.AddListener(() => RemoveEntry(entry));
+		go.GetComponentInChildren<Button>().onClick.AddListener(() =>
+		{
+			RemoveEntry(entry);
+			_mainTimeline.Redraw();
+		});
 		var input = go.GetComponentInChildren<InputField>();
 		if (input != null)
 		{
 			input.SetTextWithoutNotify(entry.Label);
 			input.onEndEdit.AddListener((s) => Rename(entry, s));
 		}
-		var type = (ParameterType)(entry.Type % ((int)ParameterType.POS + 1));
+		var type = (ParameterType)((int)entry.Type % ((int)ParameterType.POS + 1));
 		GameObject field = null;
 		switch (type)
 		{
@@ -48,6 +54,12 @@ public class ValueEditorBehaviour : EntryCollectionHud<ValueEntry>
 		rect.anchorMin = new Vector2(.5f, rect.anchorMin.y);
 		rect.anchorMax = new Vector2(.9f, rect.anchorMax.y);
 		return go;
+	}
+
+	public override void AddEntryAtCursor(ParameterType entryType)
+	{
+		base.AddEntryAtCursor(entryType);
+		_mainTimeline.Redraw();
 	}
 
 	private GameObject NewVec2Field(ValueEntry entry, GameObject go)
@@ -115,6 +127,7 @@ public class ValueEditorBehaviour : EntryCollectionHud<ValueEntry>
 	private void Rename(ValueEntry entry, string s)
 	{
 		entry.Label = s;
+		_mainTimeline.Redraw();
 		Redraw();
 	}
 
@@ -123,7 +136,7 @@ public class ValueEditorBehaviour : EntryCollectionHud<ValueEntry>
 		dropDown.AddOptions(Enum.GetNames(typeof(ParameterType)).ToList());
 		dropDown.onValueChanged.AddListener((i) =>
 		{
-			AddNewEntryAtCursor(i);
+			AddEntryAtCursor((ParameterType)i);
 			UnlockCursorLine();
 			Destroy(dropDown.gameObject);
 		});
@@ -131,6 +144,7 @@ public class ValueEditorBehaviour : EntryCollectionHud<ValueEntry>
 
 	internal override void SetEntries(List<ValueEntry> timeLineEntries)
 	{
+		_mainTimeline = FindObjectOfType<MainTimeLineBehaviour>();
 		_entryPrefabs = new GameObject[] {
 			_prefabEmptyValue,
 			_prefabChildValue,

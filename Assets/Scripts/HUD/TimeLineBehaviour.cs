@@ -32,7 +32,7 @@ public class TimeLineBehaviour : EntryCollectionHud<TimeLineEntry>
 		dropDown.AddOptions(Enum.GetNames(typeof(TimeLineEntryType)).ToList());
 		dropDown.onValueChanged.AddListener((i) =>
 		{
-			AddNewEntryAtCursor(i);
+			AddEntryAtCursor((ParameterType)i);
 			UnlockCursorLine();
 			Destroy(dropDown.gameObject);
 		});

@@ -555,7 +555,7 @@ MonoBehaviour:
   m_CaptionImage: {fileID: 0}
   m_ItemText: {fileID: 7385228575122100960}
   m_ItemImage: {fileID: 0}
-  m_Value: 0
+  m_Value: -9
   m_Options:
     m_Options: []
   m_OnValueChanged:

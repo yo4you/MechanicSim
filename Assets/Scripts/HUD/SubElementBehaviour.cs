@@ -9,6 +9,11 @@ using UnityEngine.UI;
 
 public class SubElementBehaviour : MonoBehaviour
 {
+	public enum SpecialWindows
+	{
+		ValueEditor,
+	}
+
 	[SerializeField]
 	private GameObject _tabPrefab;
 
@@ -36,7 +41,10 @@ public class SubElementBehaviour : MonoBehaviour
 	private GameObject _windowGameObject;
 	private List<GameObject> _dropDownGameObject = new List<GameObject>();
 
-	private readonly List<string> _specialWindows = new List<string>() { "[ValueEditor]" };
+	//private readonly List<string> _specialWindows = new List<string>() { "[ValueEditor]" };
+	private readonly Dictionary<SpecialWindows, string> _specialWindows = new Dictionary<SpecialWindows, string>() {
+		{SpecialWindows.ValueEditor, "[ValueEditor]"}
+	};
 
 	private void Start()
 	{
@@ -53,7 +61,7 @@ public class SubElementBehaviour : MonoBehaviour
 					  from option in _mainTimeLine.CustomMechanics
 					  where !_tabs.Contains(option.Key)
 					  select option.Key).ToList();
-		options.AddRange(_specialWindows.Except(_tabs));
+		options.AddRange(_specialWindows.Values.Except(_tabs));
 		if (options.Count() == 0)
 		{
 			Destroy(dropDown.gameObject);
@@ -88,6 +96,7 @@ public class SubElementBehaviour : MonoBehaviour
 	{
 		_tabs[_tabs.IndexOf(name)] = newName;
 		RedrawTabbar();
+		_mainTimeLine.Redraw();
 	}
 
 	private void Update()
@@ -135,6 +144,19 @@ public class SubElementBehaviour : MonoBehaviour
 		RedrawContent();
 	}
 
+	public void SetActiveWindow(SpecialWindows specialWindows)
+	{
+		var windowName = _specialWindows[specialWindows];
+		if (!_tabs.Contains(windowName))
+		{
+			AddWindow(windowName);
+		}
+		else
+		{
+			SetActiveWindow(windowName);
+		}
+	}
+
 	private void RedrawContent()
 	{
 		Destroy(_windowGameObject);
@@ -142,7 +164,7 @@ public class SubElementBehaviour : MonoBehaviour
 			return;
 		string mechanicName = _tabs[_activeTabIndex];
 
-		if (_specialWindows.Contains(mechanicName))
+		if (_specialWindows.Values.Contains(mechanicName))
 		{
 			// todo use a dictionary for this, put it in the inspector somehow
 			if (mechanicName == "[ValueEditor]")
@@ -177,5 +199,6 @@ public class SubElementBehaviour : MonoBehaviour
 			_activeTabIndex = index;
 		}
 		RedrawTabbar();
+		RedrawContent();
 	}
 }

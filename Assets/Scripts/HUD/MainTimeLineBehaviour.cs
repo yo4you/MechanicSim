@@ -36,6 +36,11 @@ public class MainTimeLineBehaviour : MonoBehaviour
 		_hudTimeLine.Rename(prevName, newName);
 	}
 
+	public void Redraw()
+	{
+		_hudTimeLine.Redraw();
+	}
+
 	private void LoadMechanic(string name)
 	{
 		_title.text = _titlePrefix + name;

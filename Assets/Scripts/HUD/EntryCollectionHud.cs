@@ -91,7 +91,7 @@ public abstract class EntryCollectionHud<EntryType> : MonoBehaviour, IPointerEnt
 		return _entries.Where(e => e.ParentEntry == entry);
 	}
 
-	public void AddNewEntryAtCursor(int entryType)
+	public virtual void AddEntryAtCursor(ParameterType entryType)
 	{
 		var entry = new EntryType()
 		{

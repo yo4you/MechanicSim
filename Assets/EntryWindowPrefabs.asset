@@ -18,4 +18,4 @@ MonoBehaviour:
   NumField: {fileID: 5657202803026543527, guid: 24a40e65e8de26541ba75250d8c07924, type: 3}
   StringField: {fileID: 4731904965347522395, guid: 4e0d229237b9f3b45ac0b53c707f98dc, type: 3}
   SwitchToValueParamButton: {fileID: 1540659989233520010, guid: 88e114d13fb498b449edd5378f31f6ba, type: 3}
-  ValuePicker: {fileID: 0}
+  ValuePicker: {fileID: 8501436416858665696, guid: 8fd569e2768397b47b15f54db3402d75, type: 3}

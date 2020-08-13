@@ -237,21 +237,43 @@ public class TimeLineEntryHud : MonoBehaviour
 	{
 		List<string> options = (
 						from val in _mainTimeLine.RefrenceValues
-						where val.Type == (int)type
+						where val.Type == type
 						select val.Label).ToList();
 
 		var valuePicker = Instantiate(_timeLine.EntryHudScriptableObject.ValuePicker, transform);
 		var dropDown = valuePicker.GetComponentInChildren<Dropdown>();
+		dropDown.SetValueWithoutNotify(-1);
+		options.Insert(0, "[New Value]");
 		dropDown.AddOptions(options);
-
 		if (parameter.RefrenceValue != null)
 			dropDown.SetValueWithoutNotify(options.IndexOf(parameter.RefrenceValue.Label ?? ""));
 		dropDown.onValueChanged.AddListener(
 			(optionIndex) =>
 			{
-				parameter.RefrenceValue = _mainTimeLine.RefrenceValues.FirstOrDefault((value) => value.Label == options[optionIndex]);
+				if (optionIndex == 0)
+				{
+					parameter.RefrenceValue = CreateNewValue(type);
+					_mainTimeLine.Redraw();
+				}
+				else
+					parameter.RefrenceValue = _mainTimeLine.RefrenceValues.FirstOrDefault((value) => value.Label == options[optionIndex - 1]);
 			});
 		return valuePicker;
+	}
+
+	private ValueEntry CreateNewValue(ParameterType type)
+	{
+		var newVal = new ValueEntry()
+		{
+			Label = $"New {type} Value",
+			Time = 0,
+			ParentEntry = null,
+			Type = type,
+			Value = null
+		};
+		_mainTimeLine.RefrenceValues.Add(newVal);
+		_subElementBehaviour.SetActiveWindow(SubElementBehaviour.SpecialWindows.ValueEditor);
+		return newVal;
 	}
 
 	private GameObject EntryWindowNum(ParameterData parameter)

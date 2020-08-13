@@ -15,6 +15,6 @@ public class ValueEntry : Entry
 
 	public override bool IsParentingType()
 	{
-		return Type > (int)ParameterType.POS;
+		return Type > ParameterType.POS;
 	}
 }
