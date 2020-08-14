@@ -62,6 +62,10 @@ public class TimeLineEntryHud : MonoBehaviour
 			{typeof(float), EntryWindowNum  },
 			{typeof(Vector2), EntryWindowVec2  },
 			{typeof(string), EntryWindowString  },
+
+			{typeof(RefrenceType<float>), EntryWindowNum},
+			{typeof(RefrenceType<Vector2>), EntryWindowVec2},
+			{typeof(RefrenceType<string>), EntryWindowString}
 		};
 
 		_mainTimeLine = FindObjectOfType<MainTimeLineBehaviour>();
@@ -141,11 +145,20 @@ public class TimeLineEntryHud : MonoBehaviour
 				existingEntry = new ParameterData();
 				_entry.Parameters[parameterSignature.Key] = existingEntry;
 			}
+			var isRefrenceOnlyParameter = false;
+			if (parameterSignature.Value.IsGenericType)
+			{
+				existingEntry.IsRefrenceValue = true;
+				isRefrenceOnlyParameter = true;
+			}
 
 			var window = _createEntryWindowForType[parameterSignature.Value].Invoke(existingEntry);
 			window.GetComponentInChildren<Text>().text = parameterSignature.Key;
-			var button = Instantiate(_timeLine.EntryHudScriptableObject.SwitchToValueParamButton, window.transform).GetComponent<Button>();
-			button.onClick.AddListener(() => SwapParameterType(existingEntry));
+			if (!isRefrenceOnlyParameter)
+			{
+				var button = Instantiate(_timeLine.EntryHudScriptableObject.SwitchToValueParamButton, window.transform).GetComponent<Button>();
+				button.onClick.AddListener(() => SwapParameterType(existingEntry));
+			}
 			parameterWindowsToAllign.Add(window);
 		}
 

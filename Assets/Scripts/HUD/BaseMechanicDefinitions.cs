@@ -2,15 +2,19 @@
 
 public static partial class BaseMechanicDefinitions
 {
-	public static void SpawnAOECircle(Vector2 position, float radius, float warnTime)
+	public static void AOECircle(Vector2 position, float radius, float warnTime)
 	{
 	}
 
-	public static void SpawnAOEDonut(Vector2 position, float inRadius, float outRadius, float warnTime)
+	public static void AOEDonut(Vector2 position, float inRadius, float outRadius, float warnTime)
 	{
 	}
 
-	public static void SpawnAOERect(Vector2 corner1, Vector2 corner2, float warnTime)
+	public static void AOERect(Vector2 corner1, Vector2 corner2, float warnTime)
+	{
+	}
+
+	public static void AOELine(Vector2 position, float angle, float width, float warnTime)
 	{
 	}
 
@@ -18,38 +22,71 @@ public static partial class BaseMechanicDefinitions
 	{
 	}
 
+	public static void SpawnMob(Vector2 position, string mob)
+	{
+	}
+
 	public static void Speak(string line, float uptime)
 	{
 	}
 
-	public static void SpawnAd(Vector2 position, string ad)
+	public static void StoreNum(RefrenceType<float> newnum, float number)
 	{
 	}
 
-	public static void StorePos(string name, Vector2 position)
+	public static void Negate(RefrenceType<float> name)
 	{
 	}
 
-	public static void StoreNum(string name, float number)
+	public static void StoreAngle(RefrenceType<float> angle, Vector2 unitVector)
 	{
 	}
 
-	public static void StoreString(string name, string theString)
+	public static void Sum(RefrenceType<float> sum, float summand)
 	{
 	}
 
-	public static float GetNum(string name)
+	public static void MultNum(RefrenceType<float> product, float multiplicant)
 	{
-		return -1f;
 	}
 
-	public static string GetString(string name)
+	public static void StoreDistance(RefrenceType<float> dist, Vector2 pos1, Vector2 pos2)
 	{
-		return "";
 	}
 
-	public static Vector2 GetPos(string name)
+	public static void DotProduct(RefrenceType<float> product, Vector2 vec1, Vector2 vec2)
 	{
-		return new Vector2();
+	}
+
+	public static void StorePos(RefrenceType<Vector2> name, Vector2 pos)
+	{
+	}
+
+	public static void StoreDiffrencePos(RefrenceType<Vector2> diffrence, Vector2 minuend, Vector2 subtrahend)
+	{
+	}
+
+	public static void SumPos(RefrenceType<Vector2> sum, Vector2 summand)
+	{
+	}
+
+	public static void Normalize(RefrenceType<Vector2> unitVector)
+	{
+	}
+
+	public static void Scale(RefrenceType<Vector2> vector, float scalar)
+	{
+	}
+
+	public static void Flip(RefrenceType<Vector2> vector)
+	{
+	}
+
+	public static void StoreUnitVector(RefrenceType<Vector2> unitVector, float angle)
+	{
+	}
+
+	public static void StoreString(RefrenceType<string> name, string text)
+	{
 	}
 }
