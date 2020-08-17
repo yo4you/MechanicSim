@@ -22,7 +22,25 @@ public class TimeLineBehaviour : EntryCollectionHud<TimeLineEntry>
 	protected override GameObject CreateEntry(List<TimeLineEntry> sortedEntries, int i)
 	{
 		var go = Instantiate(_entryPrefabs[(int)sortedEntries[i].Type], _contentTransform.transform);
-		var hudentry = go.AddComponent<TimeLineEntryHud>();
+		TimeLineEntryHud hudentry = null;// go.AddComponent<TimeLineEntryHud>();
+		switch ((TimeLineEntryType)sortedEntries[i].Type)
+		{
+			case TimeLineEntryType.Time:
+				hudentry = go.AddComponent<TimeLineEntryTime>();
+				break;
+
+			case TimeLineEntryType.Random:
+				hudentry = go.AddComponent<TimeLineEntryRandom>();
+				break;
+
+			case TimeLineEntryType.IfElse:
+				hudentry = go.AddComponent<TimeLineEntryIfElse>();
+				break;
+
+			case TimeLineEntryType.Distribute:
+				hudentry = go.AddComponent<TimeLineEntryDistribute>();
+				break;
+		}
 		hudentry.SetEntryData(sortedEntries[i], this);
 		return go;
 	}

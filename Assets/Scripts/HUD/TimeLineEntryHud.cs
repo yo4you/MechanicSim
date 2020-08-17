@@ -1,22 +1,20 @@
-﻿using System;
+﻿// @TODO split this into several classes
+
+using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
 using Button = UnityEngine.UI.Button;
 
-public class TimeLineEntryHud : MonoBehaviour
+public abstract class TimeLineEntryHud : MonoBehaviour
 {
 	private const string _newMechanicPrefix = "NewMech_";
 	private SubElementBehaviour _subElementBehaviour;
-	private TimeLineEntry _entry;
-	private TimeLineBehaviour _timeLine;
-
+	protected TimeLineEntry _entry;
+	protected TimeLineBehaviour _timeLine;
 	private GameObject _timeLabel;
-	private GameObject _castMenu;
-	private MainTimeLineBehaviour _mainTimeLine;
+	protected MainTimeLineBehaviour _mainTimeLine;
 
 	public delegate void ChangeHandler();
 
@@ -27,35 +25,7 @@ public class TimeLineEntryHud : MonoBehaviour
 	private Vector2 _margin = new Vector2(0.15f, 0.04f);
 	private Vector2 _marginWithIcon = new Vector2(0.20f, 0.04f);
 
-	internal void SetEntryData(TimeLineEntry entry, TimeLineBehaviour timeLineBehaviour)
-	{
-		_subElementBehaviour = FindObjectOfType<SubElementBehaviour>();
-		_entry = entry;
-		_timeLine = timeLineBehaviour;
-		GetComponentInChildren<UnityEngine.UI.Button>().onClick.AddListener(() => timeLineBehaviour.RemoveEntry(entry));
-		if (entry.IsParentingType())
-		{
-			_margin = _marginWithIcon;
-		}
-		switch ((TimeLineEntryType)entry.Type)
-		{
-			case TimeLineEntryType.Random:
-			case TimeLineEntryType.Time:
-				ConstructEmptyEntry(entry);
-				break;
-
-			case TimeLineEntryType.IfElse:
-				break;
-
-			case TimeLineEntryType.Distribute:
-				break;
-
-			default:
-				break;
-		}
-	}
-
-	private void ConstructEmptyEntry(TimeLineEntry entry)
+	internal virtual void SetEntryData(TimeLineEntry entry, TimeLineBehaviour timeLineBehaviour)
 	{
 		_createEntryWindowForType = new Dictionary<Type, CreateEntryWindowHandler>
 		{
@@ -67,24 +37,33 @@ public class TimeLineEntryHud : MonoBehaviour
 			{typeof(RefrenceType<Vector2>), EntryWindowVec2},
 			{typeof(RefrenceType<string>), EntryWindowString}
 		};
-
 		_mainTimeLine = FindObjectOfType<MainTimeLineBehaviour>();
 
+		_subElementBehaviour = FindObjectOfType<SubElementBehaviour>();
+		_entry = entry;
+		_timeLine = timeLineBehaviour;
+
+		GetComponentInChildren<Button>().onClick.AddListener(() => timeLineBehaviour.RemoveEntry(entry));
+		if (entry.IsParentingType())
+		{
+			_margin = _marginWithIcon;
+		}
+	}
+
+	protected void ConstructEmptyEntry(TimeLineEntry entry)
+	{
 		if (entry.ParentEntry == null)
 		{
-			_timeLabel = Instantiate(_timeLine.EntryHudScriptableObject.TimeLabel, transform);
-			var inputField = _timeLabel.GetComponent<InputField>();
-			inputField.SetTextWithoutNotify(TimeStampUtil.ToTimeStamp(entry.Time));
-			inputField.onEndEdit.AddListener((inputString) => SubmitTime(inputString));
+			AddTimeLabel(entry);
 		}
 
-		_castMenu = Instantiate(_timeLine.EntryHudScriptableObject.CastLabel, transform);
+		var castMenu = Instantiate(_timeLine.EntryHudScriptableObject.CastLabel, transform);
 
-		var castRect = _castMenu.GetComponent<RectTransform>();
+		var castRect = castMenu.GetComponent<RectTransform>();
 		castRect.anchorMin = new Vector2(_margin.x, castRect.anchorMin.y);
 		castRect.anchorMax = new Vector2(1f - _margin.y, castRect.anchorMax.y);
 
-		var dropdown = _castMenu.GetComponent<Dropdown>();
+		var dropdown = castMenu.GetComponent<Dropdown>();
 		var options = _mainTimeLine.Mechanics.Keys.ToList();
 		var defaultOption = options.IndexOf(entry.Mechanic);
 		dropdown.AddOptions(new List<string>() { "New Mechanic" });
@@ -92,7 +71,9 @@ public class TimeLineEntryHud : MonoBehaviour
 		if (defaultOption != -1)
 		{
 			dropdown.SetValueWithoutNotify(defaultOption + 1);
-			SetMechanic(entry.Mechanic);
+			var windows = SetMechanic(entry.Mechanic);
+			windows.Insert(0, castMenu);
+			AlignParameterWidnows(windows);
 		}
 		dropdown.onValueChanged.AddListener((optionIndex) =>
 		{
@@ -105,10 +86,20 @@ public class TimeLineEntryHud : MonoBehaviour
 			}
 			else
 			{
-				SetMechanic(options[optionIndex - 1]);
+				var windows = SetMechanic(options[optionIndex - 1]);
+				windows.Insert(0, castMenu);
+				AlignParameterWidnows(windows);
 				_timeLine.Redraw();
 			}
 		});
+	}
+
+	protected void AddTimeLabel(TimeLineEntry entry)
+	{
+		_timeLabel = Instantiate(_timeLine.EntryHudScriptableObject.TimeLabel, transform);
+		var inputField = _timeLabel.GetComponent<InputField>();
+		inputField.SetTextWithoutNotify(TimeStampUtil.ToTimeStamp(entry.Time));
+		inputField.onEndEdit.AddListener((inputString) => SubmitTime(inputString));
 	}
 
 	private string CreateNewMechanic()
@@ -129,11 +120,11 @@ public class TimeLineEntryHud : MonoBehaviour
 		return name;
 	}
 
-	private void SetMechanic(string mechanicName)
+	private List<GameObject> SetMechanic(string mechanicName)
 	{
 		if (mechanicName == null)
 		{
-			return;
+			return new List<GameObject>();
 		}
 		_entry.Mechanic = mechanicName;
 		var mechanic = _mainTimeLine.Mechanics[mechanicName];
@@ -162,7 +153,7 @@ public class TimeLineEntryHud : MonoBehaviour
 			parameterWindowsToAllign.Add(window);
 		}
 
-		AlignParameterWidnows(parameterWindowsToAllign);
+		return parameterWindowsToAllign;
 	}
 
 	private void SwapParameterType(ParameterData parameter)
@@ -171,13 +162,12 @@ public class TimeLineEntryHud : MonoBehaviour
 		_timeLine.Redraw();
 	}
 
-	private void AlignParameterWidnows(List<GameObject> windows)
+	protected void AlignParameterWidnows(List<GameObject> windows)
 	{
 		if (windows.Count == 0)
 		{
 			return;
 		}
-		windows.Insert(0, _castMenu);
 		int count = windows.Count;
 
 		float inverseCount = (1f / count) * (1f - _margin.x - _margin.y);
@@ -246,6 +236,27 @@ public class TimeLineEntryHud : MonoBehaviour
 		return window;
 	}
 
+	private GameObject EntryWindowNum(ParameterData parameter)
+	{
+		if (parameter.IsRefrenceValue)
+		{
+			return InstantiateRefrenceValuePicker(parameter, ParameterType.NUM);
+		}
+		var readval = (float)(parameter.Value ?? 0f);
+		GameObject window = Instantiate(_timeLine.EntryHudScriptableObject.NumField, transform);
+		window.GetComponentInChildren<Text>().text = name;
+		var input = window.GetComponentInChildren<InputField>();
+		input.SetTextWithoutNotify(readval.ToString());
+		input.onEndEdit.AddListener((newVal) =>
+		{
+			if (float.TryParse(newVal, out float result))
+			{
+				parameter.Value = result;
+			}
+		});
+		return window;
+	}
+
 	private GameObject InstantiateRefrenceValuePicker(ParameterData parameter, ParameterType type)
 	{
 		List<string> options = (
@@ -287,26 +298,5 @@ public class TimeLineEntryHud : MonoBehaviour
 		_mainTimeLine.RefrenceValues.Add(newVal);
 		_subElementBehaviour.SetActiveWindow(SubElementBehaviour.SpecialWindows.ValueEditor);
 		return newVal;
-	}
-
-	private GameObject EntryWindowNum(ParameterData parameter)
-	{
-		if (parameter.IsRefrenceValue)
-		{
-			return InstantiateRefrenceValuePicker(parameter, ParameterType.NUM);
-		}
-		var readval = (float)(parameter.Value ?? 0f);
-		GameObject window = Instantiate(_timeLine.EntryHudScriptableObject.NumField, transform);
-		window.GetComponentInChildren<Text>().text = name;
-		var input = window.GetComponentInChildren<InputField>();
-		input.SetTextWithoutNotify(readval.ToString());
-		input.onEndEdit.AddListener((newVal) =>
-		{
-			if (float.TryParse(newVal, out float result))
-			{
-				parameter.Value = result;
-			}
-		});
-		return window;
 	}
 }
