@@ -257,11 +257,11 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 		return window;
 	}
 
-	private GameObject InstantiateRefrenceValuePicker(ParameterData parameter, ParameterType type)
+	protected GameObject InstantiateRefrenceValuePicker(ParameterData parameter, ParameterType type)
 	{
 		List<string> options = (
 						from val in _mainTimeLine.RefrenceValues
-						where val.Type == type
+						where val.Type.Equality(type)
 						select val.Label).ToList();
 
 		var valuePicker = Instantiate(_timeLine.EntryHudScriptableObject.ValuePicker, transform);
@@ -270,7 +270,7 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 		options.Insert(0, "[New Value]");
 		dropDown.AddOptions(options);
 		if (parameter.RefrenceValue != null)
-			dropDown.SetValueWithoutNotify(options.IndexOf(parameter.RefrenceValue.Label ?? ""));
+			dropDown.SetValueWithoutNotify(1 + options.IndexOf(parameter.RefrenceValue.Label ?? ""));
 		dropDown.onValueChanged.AddListener(
 			(optionIndex) =>
 			{
@@ -287,9 +287,11 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 
 	private ValueEntry CreateNewValue(ParameterType type)
 	{
+		if (type == ParameterType.ANY)
+			type = ParameterType.NUM;
 		var newVal = new ValueEntry()
 		{
-			Label = $"New {type} Value",
+			Label = $"{type} Value #{_mainTimeLine.RefrenceValues.Count}",
 			Time = 0,
 			ParentEntry = null,
 			Type = type,

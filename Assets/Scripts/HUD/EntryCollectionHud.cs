@@ -104,7 +104,7 @@ public abstract class EntryCollectionHud<EntryType> : MonoBehaviour, IPointerEnt
 		{
 			var prevEntry = _entries[_cursorIndex - 1];
 			entry.Time = prevEntry.Time + 1;
-			if (entry.IsParentingType() && prevEntry.Type == entryType)
+			if (entry.IsParentingType() && prevEntry.Type.Equality(entryType))
 			{
 				entry.ParentEntry = prevEntry;
 			}
@@ -112,7 +112,7 @@ public abstract class EntryCollectionHud<EntryType> : MonoBehaviour, IPointerEnt
 			if (_cursorIndex < _entries.Count)
 			{
 				var nextEntry = _entries[_cursorIndex];
-				if (entry.IsParentingType() && nextEntry.Type == entryType)
+				if (entry.IsParentingType() && nextEntry.Type.Equality(entryType))
 				{
 					nextEntry.ParentEntry = entry;
 				}

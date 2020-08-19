@@ -41,18 +41,6 @@ public class TimeLineEntryIfElse : TimeLineEntryHud
 		_entry.Parameters.TryGetValue(_righthandString, out ParameterData rh);
 		_entry.Parameters.TryGetValue(_comparatorString, out ParameterData c);
 		var outp = "";
-		if (lh != null && lh.RefrenceValue != null)
-		{
-			outp += lh.RefrenceValue.Label + " ";
-		}
-		if (c != null && c.Value != null)
-		{
-			outp += c.Value + " ";
-		}
-		if (rh != null && rh.RefrenceValue != null)
-		{
-			outp += rh.RefrenceValue.Label + " ";
-		}
 
 		AddTimeLabel(entry);
 		_leftHand = Instantiate(_timeLine.EntryHudScriptableObject.CastLabel, transform).GetComponent<Dropdown>();
@@ -107,7 +95,7 @@ public class TimeLineEntryIfElse : TimeLineEntryHud
 		_comparator = Instantiate(_timeLine.EntryHudScriptableObject.CastLabel, transform).GetComponent<Dropdown>();
 		_rightHand = Instantiate(_timeLine.EntryHudScriptableObject.CastLabel, transform).GetComponent<Dropdown>();
 
-		var rhOptions = from val in _mainTimeLine.RefrenceValues where val.Type == type select val;
+		var rhOptions = from val in _mainTimeLine.RefrenceValues where val.Type.Equality(type) select val;
 		_rightHand.ClearOptions();
 		List<string> rhOptionsAsString = AsStringList(rhOptions);
 		_rightHand.AddOptions(rhOptionsAsString);

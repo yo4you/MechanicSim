@@ -133,7 +133,10 @@ public class ValueEditorBehaviour : EntryCollectionHud<ValueEntry>
 
 	protected override void DisplayDropDownMenu(Dropdown dropDown)
 	{
-		dropDown.AddOptions(Enum.GetNames(typeof(ParameterType)).ToList());
+		var options = Enum.GetNames(typeof(ParameterType)).ToList();
+		options.RemoveAt(options.Count - 1);
+		dropDown.AddOptions(options);
+
 		dropDown.onValueChanged.AddListener((i) =>
 		{
 			AddEntryAtCursor((ParameterType)i);
