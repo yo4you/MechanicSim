@@ -13,15 +13,30 @@ public class MainTimeLineBehaviour : MonoBehaviour
 	private FightData _fightData;
 	private Dictionary<string, Mechanic> _mechanics = new Dictionary<string, Mechanic>();
 	private TimeLineBehaviour _hudTimeLine;
+	private ScriptableValueManager _scripableValueManager;
+
 	public Dictionary<string, Mechanic> Mechanics { get => _mechanics; }
 	public Dictionary<string, Mechanic> CustomMechanics { get; } = new Dictionary<string, Mechanic>();
-	public List<ValueEntry> RefrenceValues { get; private set; } = new List<ValueEntry>();
+	public List<ValueEntry> CustomRefrenceValues { get; private set; } = new List<ValueEntry>();
+
+	public IReadOnlyList<ValueEntry> GetScriptedRefrenceValues(bool distribute)
+	{
+		if (distribute)
+			_scripableValueManager.StartDistribute();
+		else
+			_scripableValueManager.StopDistribute();
+
+		_scripableValueManager.Read();
+		return _scripableValueManager.Values.AsReadOnly();
+	}
 
 	private void Start()
 	{
 		_titlePrefix = _title.text;
 		_hudTimeLine = GetComponentInChildren<TimeLineBehaviour>();
 		// just for debug
+		_scripableValueManager = new ScriptableValueManager();
+
 		LoadMechanic("Test0");
 	}
 
@@ -52,7 +67,7 @@ public class MainTimeLineBehaviour : MonoBehaviour
 		CombineMechanicDictionaries();
 
 		_hudTimeLine.SetEntries(_fightData.MechanicTimeLine.TimeLineEntries);
-		RefrenceValues = _fightData.ValueStores;
+		CustomRefrenceValues = _fightData.ValueStores;
 	}
 
 	private void CombineMechanicDictionaries()

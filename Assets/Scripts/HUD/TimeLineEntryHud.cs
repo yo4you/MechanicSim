@@ -259,9 +259,12 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 
 	protected GameObject InstantiateRefrenceValuePicker(ParameterData parameter, ParameterType type)
 	{
+		List<ValueEntry> refrenceValues = new List<ValueEntry>();
+		refrenceValues.AddRange(_mainTimeLine.CustomRefrenceValues);
+		refrenceValues.AddRange(_mainTimeLine.GetScriptedRefrenceValues(false));
 		List<string> options = (
-						from val in _mainTimeLine.RefrenceValues
-						where val.Type.Equality(type)
+						from val in refrenceValues
+						where val.Type.Equality(type) && val.ParentEntry == null
 						select val.Label).ToList();
 
 		var valuePicker = Instantiate(_timeLine.EntryHudScriptableObject.ValuePicker, transform);
@@ -270,7 +273,7 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 		options.Insert(0, "[New Value]");
 		dropDown.AddOptions(options);
 		if (parameter.RefrenceValue != null)
-			dropDown.SetValueWithoutNotify(1 + options.IndexOf(parameter.RefrenceValue.Label ?? ""));
+			dropDown.SetValueWithoutNotify(options.IndexOf(parameter.RefrenceValue.Label ?? ""));
 		dropDown.onValueChanged.AddListener(
 			(optionIndex) =>
 			{
@@ -280,7 +283,7 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 					_mainTimeLine.Redraw();
 				}
 				else
-					parameter.RefrenceValue = _mainTimeLine.RefrenceValues.FirstOrDefault((value) => value.Label == options[optionIndex - 1]);
+					parameter.RefrenceValue = refrenceValues.FirstOrDefault((value) => value.Label == options[optionIndex]);
 			});
 		return valuePicker;
 	}
@@ -291,13 +294,13 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 			type = ParameterType.NUM;
 		var newVal = new ValueEntry()
 		{
-			Label = $"{type} Value #{_mainTimeLine.RefrenceValues.Count}",
+			Label = $"{type} Value #{_mainTimeLine.CustomRefrenceValues.Count}",
 			Time = 0,
 			ParentEntry = null,
 			Type = type,
 			Value = null
 		};
-		_mainTimeLine.RefrenceValues.Add(newVal);
+		_mainTimeLine.CustomRefrenceValues.Add(newVal);
 		_subElementBehaviour.SetActiveWindow(SubElementBehaviour.SpecialWindows.ValueEditor);
 		return newVal;
 	}

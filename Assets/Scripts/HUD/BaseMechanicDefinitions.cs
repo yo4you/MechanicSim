@@ -22,11 +22,35 @@ public static partial class BaseMechanicDefinitions
 	{
 	}
 
+	public static void StackMarker(Vector2 pos, float people, float warnTime)
+	{
+	}
+
+	public static void FlareMarker(Vector2 pos, float halvingRadius, float warnTime)
+	{
+	}
+
+	public static void ApplyStatus(string entity, string status)
+	{
+	}
+
+	public static void Tether(Vector2 pos1, Vector2 pos2, string effectData)
+	{
+	}
+
 	public static void SpawnMob(Vector2 position, string mob)
 	{
 	}
 
 	public static void Speak(string line, float uptime)
+	{
+	}
+
+	public static void StoreClosestPlayer(RefrenceType<string> name, Vector2 pos, float skip)
+	{
+	}
+
+	public static void StoreFurthestPlayer(RefrenceType<string> name, Vector2 pos, float skip)
 	{
 	}
 

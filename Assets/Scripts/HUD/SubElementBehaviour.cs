@@ -166,7 +166,7 @@ public class SubElementBehaviour : MonoBehaviour
 			if (mechanicName == "[ValueEditor]")
 			{
 				_windowGameObject = Instantiate(_valueEditorWindowPrefab, transform);
-				_windowGameObject.GetComponentInChildren<ValueEditorBehaviour>().SetEntries(_mainTimeLine.RefrenceValues);
+				_windowGameObject.GetComponentInChildren<ValueEditorBehaviour>().SetEntries(_mainTimeLine.CustomRefrenceValues);
 			}
 		}
 		else
