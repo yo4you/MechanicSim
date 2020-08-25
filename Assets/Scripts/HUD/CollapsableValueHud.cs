@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CollapsableValueHud : MonoBehaviour
 {
@@ -12,10 +10,17 @@ public class CollapsableValueHud : MonoBehaviour
 
 	private bool _isOpen = true;
 
+	public bool IsOpen { get => _isOpen; }
+
+	public delegate void OnToggleDelegate();
+
+	public event OnToggleDelegate OnToggle;
+
 	public void ToggleState()
 	{
-		_isOpen = !_isOpen;
-		_imageCollapseUp.SetActive(_isOpen);
-		_imageCollapseDown.SetActive(!_isOpen);
+		_isOpen = !IsOpen;
+		_imageCollapseUp.SetActive(IsOpen);
+		_imageCollapseDown.SetActive(!IsOpen);
+		OnToggle?.Invoke();
 	}
 }

@@ -140,6 +140,7 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 			if (parameterSignature.Value.IsGenericType)
 			{
 				existingEntry.IsRefrenceValue = true;
+				existingEntry.IsRefrenceOnlyValue = true;
 				isRefrenceOnlyParameter = true;
 			}
 
@@ -261,7 +262,8 @@ public abstract class TimeLineEntryHud : MonoBehaviour
 	{
 		List<ValueEntry> refrenceValues = new List<ValueEntry>();
 		refrenceValues.AddRange(_mainTimeLine.CustomRefrenceValues);
-		refrenceValues.AddRange(_mainTimeLine.GetScriptedRefrenceValues(false));
+		if (!parameter.IsRefrenceOnlyValue)
+			refrenceValues.AddRange(_mainTimeLine.GetScriptedRefrenceValues(false));
 		List<string> options = (
 						from val in refrenceValues
 						where val.Type.Equality(type) && val.ParentEntry == null

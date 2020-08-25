@@ -3,12 +3,18 @@
 	/// <summary>
 	/// stored value
 	/// </summary>
-	public object Value = null;
+	private object value = null;
 
 	/// <summary>
 	/// value read from value storage
 	/// </summary>
-	public ValueEntry RefrenceValue = null;
+	private ValueEntry refrenceValue = null;
 
-	public bool IsRefrenceValue = false;
+	private bool isRefrenceValue = false;
+	private bool _isRefrenceOnlyValue;
+
+	public bool IsRefrenceOnlyValue { get => _isRefrenceOnlyValue; internal set => _isRefrenceOnlyValue = value; }
+	public bool IsRefrenceValue { get => isRefrenceValue; set => isRefrenceValue = value; }
+	public ValueEntry RefrenceValue { get => refrenceValue; set => refrenceValue = value; }
+	public object Value { get => value; set => this.value = value; }
 }

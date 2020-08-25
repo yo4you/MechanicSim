@@ -38,11 +38,17 @@ public abstract class EntryCollectionHud<EntryType> : MonoBehaviour, IPointerEnt
 	private GameObject _button;
 	private bool _cursorLocked = false;
 	private List<GameObject> _dropDownGameObjects = new List<GameObject>();
+	private bool _initialized;
 
 	public EntryHudScriptableObject EntryHudScriptableObject { get => _entryHudScriptableObject; }
 
 	private void Update()
 	{
+		if (!_initialized)
+		{
+			Debug.LogWarning("call SetEntries before using");
+			return;
+		}
 		if (!_cursorLocked)
 		{
 			_cursorIndex = (int)((
@@ -63,6 +69,7 @@ public abstract class EntryCollectionHud<EntryType> : MonoBehaviour, IPointerEnt
 
 	internal virtual void SetEntries(List<EntryType> timeLineEntries)
 	{
+		_initialized = true;
 		_scrollRect = GetComponent<ScrollRect>();
 		_addSeperator.enabled = false;
 
